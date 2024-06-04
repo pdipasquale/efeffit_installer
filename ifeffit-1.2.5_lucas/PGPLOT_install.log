@@ -1,0 +1,15 @@
+# PGPLOT install log 
+# system =  linux  ==  linux g77_gcc
+# prefix =  /usr/local/
+# driver.list written to   /usr/local//pgplot//drivers.list
+# starting build
+ 
+cd  /usr/local//pgplot// 
+rm -f grfont.dat pgplot.doc pgxwin_server lib*pgplot* pgdemo* 
+/usr/lib/ifeffit-1.2.5_lucas/pgplot/makemake /usr/lib/ifeffit-1.2.5_lucas/pgplot linux g77_gcc
+# this is a kludge to fix png driver
+sed 's|pndriv.o : ./png.h|#### pndriv.o : ./png.h|g' makefile > Tmp 
+mv Tmp makefile 
+# end kludge
+make FFLAGC=-O1 libpgplot.a  
+make grfont.dat prog pgplot.doc pgxwin_server cpg

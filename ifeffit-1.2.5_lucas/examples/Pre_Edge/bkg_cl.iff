@@ -1,0 +1,11 @@
+#
+# pre-edge subtraction and normalization 
+# using Cromer-Libermann data
+#
+ read_data(file = ../data/cu.xmu, prefix = dat, type = xmu)
+ bkg_cl(energy=dat.energy, xmu = dat.xmu, z=29)  
+
+ newplot (dat.energy, dat.norm)
+ plot (dat.energy, dat.f2norm)
+
+ show @arrays

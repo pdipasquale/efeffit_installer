@@ -1,0 +1,8 @@
+mfms, idwopt, minv
+   0   0   0
+rfms2, rdirec, toler1, toler2
+     -1.00000     -1.00000      0.00100      0.00100
+tk, thetad, sig2g
+    293.00000    340.00000      0.00000
+ lmaxph(0:nph)
+   3   3

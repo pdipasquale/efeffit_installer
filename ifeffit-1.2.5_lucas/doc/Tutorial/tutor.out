@@ -1,0 +1,32 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}
+\BOOKMARK [2][-]{subsection.1.1}{Running ifeffit}{section.1}
+\BOOKMARK [1][-]{section.2}{Data, Commands, and Simple Data Manipulation}{}
+\BOOKMARK [2][-]{subsection.2.1}{Data Types and Naming Conventions}{section.2}
+\BOOKMARK [2][-]{subsection.2.2}{Data Manipulation}{section.2}
+\BOOKMARK [2][-]{subsection.2.3}{Commands and their conventions}{section.2}
+\BOOKMARK [2][-]{subsection.2.4}{Storing Definitions of Scalars and Arrays: show\(\) and def\(\)}{section.2}
+\BOOKMARK [2][-]{subsection.2.5}{The show\(\) command}{section.2}
+\BOOKMARK [2][-]{subsection.2.6}{The print\(\) command}{section.2}
+\BOOKMARK [2][-]{subsection.2.7}{Command Files}{section.2}
+\BOOKMARK [1][-]{section.3}{Reading Arrays from Data Files}{}
+\BOOKMARK [1][-]{section.4}{Plotting Data}{}
+\BOOKMARK [1][-]{section.5}{XAFS Data Processing}{}
+\BOOKMARK [2][-]{subsection.5.1}{Data Reduction}{section.5}
+\BOOKMARK [2][-]{subsection.5.2}{Pre-Edge Subtraction, E0 determination, and Normalization}{section.5}
+\BOOKMARK [2][-]{subsection.5.3}{Post-Edge Background Subtraction}{section.5}
+\BOOKMARK [2][-]{subsection.5.4}{Fourier Transforms}{section.5}
+\BOOKMARK [3][-]{subsubsection.5.4.1}{Forward Fourier Transforms}{subsection.5.4}
+\BOOKMARK [3][-]{subsubsection.5.4.2}{Reverse Fourier Transforms}{subsection.5.4}
+\BOOKMARK [1][-]{section.6}{XAFS Analysis}{}
+\BOOKMARK [2][-]{subsection.6.1}{Defining Paths}{section.6}
+\BOOKMARK [2][-]{subsection.6.2}{Combining Paths}{section.6}
+\BOOKMARK [2][-]{subsection.6.3}{Getting and Viewing Path Parameters}{section.6}
+\BOOKMARK [2][-]{subsection.6.4}{feffit\(\): Fitting XAFS Data with Paths}{section.6}
+\BOOKMARK [2][-]{subsection.6.5}{Uncertainties in Fitted Variables, Fitting Statistics}{section.6}
+\BOOKMARK [1][-]{section.7}{Modeling non-XAFS data}{}
+\BOOKMARK [1][-]{section.8}{Saving data and logging your ifeffit session}{}
+\BOOKMARK [2][-]{subsection.8.1}{Writing output data files}{section.8}
+\BOOKMARK [2][-]{subsection.8.2}{Writing log files}{section.8}
+\BOOKMARK [2][-]{subsection.8.3}{Saving the state of an ifeffit session}{section.8}
+\BOOKMARK [1][-]{section.9}{Defining and Using Macros}{}
+\BOOKMARK [1][-]{section.10}{The ifeffit command-line program}{}

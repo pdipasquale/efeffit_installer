@@ -1,0 +1,15 @@
+ Calculating potentials ...
+    free atom potential and density for atom type    0
+    free atom potential and density for atom type    1
+    free atom potential and density for atom type    2
+    initial state energy
+    overlapped potential and density for unique potential    0
+    overlapped potential and density for unique potential    1
+    overlapped potential and density for unique potential    2
+    muffin tin radii and interstitial parameters
+ iph, rnrm(iph)*bohr, rmt(iph)*bohr, folp(iph)
+    0  1.29757E+00  1.25179E+00  1.09330E+00
+    1  1.04243E+00  8.47394E-01  1.15000E+00
+    2  9.24459E-01  7.62589E-01  1.15000E+00
+ mu_old=     5.790
+ Done with module 1: potentials.

@@ -1,0 +1,16 @@
+ Ferrocene PUBLISHED DATA
+ -----------------------------------------------------------------------
+    1  4.810214E-02   1   0
+    0  0.000000E+00  0.000000E+00    0 ixc, vr0, vi0, ixc0
+    0  0.000000E+00  3.704241E-02  7.937659E+00
+    0    0 jumprm, mbconv
+    2  nph
+    0   26  0.000 iph, iz, ion
+    1    6  0.000 iph, iz, ion
+    2    1  0.000 iph, iz, ion
+    0    1         1.0    1.150000    0    2 iph, iat, xnat, folp, novr, lmax
+ 'Fe    '  potlbl
+    1    2        10.0    1.150000    0    2 iph, iat, xnat, folp, novr, lmax
+ 'C     '  potlbl
+    2   12        10.0    1.150000    0    1 iph, iat, xnat, folp, novr, lmax
+ 'H     '  potlbl

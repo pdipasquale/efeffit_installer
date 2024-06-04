@@ -1,0 +1,52 @@
+ Feff 6L.02
+ Ferrocene eclipsed structure
+ Calculating potentials and phases...
+     free atom potential and density for atom type    0
+     free atom potential and density for atom type    1
+     overlapped potential and density for unique potential    0
+     overlapped potential and density for unique potential    1
+     muffin tin radii and interstitial parameters
+     phase shifts for unique potential    0
+   Hard tests failed in fovrg.
+  Muffin-tin radius may be too large; coordination number too small.
+     phase shifts for unique potential    1
+   Hard tests failed in fovrg.
+  Muffin-tin radius may be too large; coordination number too small.
+ Preparing plane wave scattering amplitudes...
+   nncrit in prcrit       9
+ Searching for paths...
+    WARNING in PATHS Module:
+       rmax > distance to most distant atom.
+       Some paths may be missing.
+   rmax, ratx      5.00000     2.05600
+     Rmax  5.0000  keep and heap limits   0.0000000   0.0000000
+    Preparing neighbor table
+     nfound  nheap  nheapx  nsc    r
+     Paths found      600   (nheapx, nbx     100   3)
+ Eliminating path degeneracies...
+     Plane wave chi amplitude filter   2.50%
+     Unique paths     18,  total paths     326
+ Calculating EXAFS parameters...
+     Curved wave chi amplitude ratio   4.00%
+     Discard feff.dat for paths with cw ratio <   2.67%
+     path  cw ratio     deg    nleg  reff
+       1   100.000    10.000     2   2.0560
+       2    11.895     8.000     3   2.7646
+       3    17.845    12.000     3   2.7646
+       4    12.636    20.000     3   3.2025
+       5     7.015    16.000     4   3.4731
+       6     4.333    10.000     3   3.7214
+       7    14.501    20.000     3   3.8659
+       8     5.839    24.000     4   3.9111
+       9    25.759    20.000     3   4.0779
+      10    24.973    20.000     4   4.1120
+      11     5.806    20.000     4   4.1120
+      12     3.911    10.000     4   4.1120
+      13     2.162    12.000     4   4.1120 neglected
+      14     5.246    20.000     4   4.1120
+      15     6.272    20.000     4   4.3491
+      16     2.394    12.000     4   4.3491 neglected
+      17     7.964    40.000     4   4.5746
+      18     6.970    32.000     4   4.7865
+    16 paths kept,   18 examined.
+ Feff done.  Have a nice day.

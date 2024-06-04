@@ -1,0 +1,30 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2004.10.26.05.09.51;	author lucasfs;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@c{fft.h  -*-fortran-*-
+c  fast-fourier transform:
+       logical          wftset
+       double precision wfftc(mwfft)
+       common /xftxv/   wfftc
+       common /xftxl/   wftset
+c}
+@

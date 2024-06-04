@@ -1,0 +1,32 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2004.10.26.05.09.51;	author lucasfs;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@c{sys.h  -*-fortran-*- 
+c system and build specific stuff goes here
+c to be included in iff_config.f
+       sysdir = '/imports/tauon/home/lucasfs/myifeffit/share/ifeffit'
+       pgdev  = '/xserve'
+       inifile= 'startup.iff  .ifeffit'
+       build = '	1.2.5'//
+     $   ' Copyright (c) 2004 Matt Newville, Univ of Chicago'
+c}
+@

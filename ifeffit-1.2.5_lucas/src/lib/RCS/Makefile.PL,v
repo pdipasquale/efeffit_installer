@@ -1,0 +1,66 @@
+head	1.2;
+access;
+symbols;
+locks
+	lucasfs:1.2; strict;
+comment	@# @;
+
+
+1.2
+date	2004.10.27.06.59.24;	author lucasfs;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2004.10.26.07.20.09;	author lucasfs;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@*** empty log message ***
+@
+text
+@#  -*-perl-*-
+#  Perl Makefile.PL auto-generated during Ifeffit build
+#  This file may need some modifications, but should give
+#  a good guess for how to build the Ifeffit extension.
+#  
+use lib '.';
+use ExtUtils::MakeMaker;
+use Config;
+WriteMakefile('NAME'   => 'Ifeffit',
+              'SKIP'   => ['test_dynamic'],
+              'OBJECT' => 'ifeffit_wrap.o',
+              'INSTALLBIN'    => '/home/lucasfs/ifeffit/bin',
+              'INSTALLSCRIPT' => '/home/lucasfs/ifeffit/bin',
+              'LDDLFLAGS'     => '-shared',
+              'INC'    => '-I../../src/lib -I/home/lucasfs/ifeffit/share/ifeffit/config',
+              'LIBS'   =>[' -L../../src/lib '.$Config{ldflags}.
+                    ' -lifeffit -L/imports/tauon/home/lucasfs/pglib -lpgplot -L/usr/X11R6/lib -lX11 '.
+                    join(" ", (sort(split(" ", "-L/usr/lib/gcc-lib/i486-linux/3.3.4 -L/usr/lib/gcc-lib/i486-linux/3.3.4/../../.. -lfrtbegin -lg2c -lm -lgcc_s" ))))] 
+         );
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 2
+a13 2
+              'INSTALLBIN'    => '/imports/tauon/home/lucasfs/myifeffit/bin',
+              'INSTALLSCRIPT' => '/imports/tauon/home/lucasfs/myifeffit/bin',
+d15 1
+a15 1
+              'INC'    => '-I../../src/lib -I/imports/tauon/home/lucasfs/myifeffit/share/ifeffit/config',
+d18 1
+a18 1
+                    join(" ", (sort(split(" ", "-L/usr/lib/gcc-lib/i386-linux/3.3.1 -L/usr/lib/gcc-lib/i386-linux/3.3.1/../../.. -lfrtbegin -lg2c -lm -lgcc_s" ))))] 
+@

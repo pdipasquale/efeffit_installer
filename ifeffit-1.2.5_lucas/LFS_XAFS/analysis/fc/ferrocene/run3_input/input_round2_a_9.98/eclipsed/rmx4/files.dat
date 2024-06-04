@@ -1,0 +1,14 @@
+ Eclipsed structure of ferrocene with a=9.98, b=c=10    Feff 6L.02    potph 4.12
+ Abs   Z=26 Rmt= 1.113 Rnm= 1.277 K shell
+ Pot 1 Z= 6 Rmt= 0.726 Rnm= 1.070
+ Gam_ch=1.325E+00 H-L exch
+ Mu=-4.396E+00 kf=2.580E+00 Vint=-2.975E+01 Rs_int= 1.406
+ -------------------------------------------------------------------------------
+    file        sig2   amp ratio    deg    nlegs  r effective
+ feff0001.dat 0.00000   100.000    10.000     2   2.0451
+ feff0002.dat 0.00000    29.695    20.000     3   2.7508
+ feff0003.dat 0.00000    12.601    20.000     3   3.1870
+ feff0004.dat 0.00000     8.736    20.000     4   3.4566
+ feff0005.dat 0.00000     4.325    10.000     3   3.7005
+ feff0006.dat 0.00000    14.492    20.000     3   3.8447
+ feff0007.dat 0.00000     9.702    40.000     4   3.8929

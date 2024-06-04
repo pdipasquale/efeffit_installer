@@ -1,0 +1,317 @@
+XAFS/analysis/fc/ferrocene
+$ ../../../lfs_xafs/lfs_xafs.exe
+   reading  feff/feff0001.dat
+   reading  feff/feff0002.dat
+   reading  feff/feff0003.dat
+   reading  feff/feff0004.dat
+   reading  feff/feff0005.dat
+   reading  feff/feff0006.dat
+   reading  feff/feff0007.dat
+   reading  feff/feff0008.dat
+   reading  feff/feff0009.dat
+   reading  feff/feff0010.dat
+   reading  feff/feff0011.dat
+   reading  feff/feff0012.dat
+   reading  feff/feff0013.dat
+   reading  feff/feff0014.dat
+   reading  feff/feff0015.dat
+   reading  feff/feff0016.dat
+   reading  feff/feff0017.dat
+   reading  feff/feff0018.dat
+   reading  feff/feff0019.dat
+   reading  feff/feff0020.dat
+   reading  feff/feff0021.dat
+   reading  feff/feff0022.dat
+   reading  feff/feff0023.dat
+   reading  feff/feff0024.dat
+   reading  feff/feff0025.dat
+   reading  feff/feff0026.dat
+ kweight        =       0.000000000
+ kmin           =       3.500000000
+ kmax           =      12.000000000
+ dk             =       0.300000000
+ rmin           =       1.300000000
+ rmax           =       3.500000000
+ dr             =       0.300000000
+   feffit fitting   1 data sets
+   fitting ...   estimating uncertainties ... done.
+   feffit2 fitting   1 data sets
+  feffit2:  calculating mychi_squared.
+ onlychi2 = true
+   PATH     1
+     feff   = feff/feff0001.dat
+     id     = reff=  2.0478, degen= 10.0, path: Fe->C->Fe
+     r      =    2.040525
+     reff   =    2.047800
+     degen  =   10.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.007275
+     ss2    =    0.005171
+   PATH     2
+     feff   = feff/feff0002.dat
+     id     = reff=  2.7535, degen= 20.0, path: Fe->C->C->Fe
+     r      =    2.743717
+     reff   =    2.753500
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.009783
+     ss2    =    0.005831
+   PATH     3
+     feff   = feff/feff0003.dat
+     id     = reff=  3.1897, degen= 20.0, path: Fe->C->C->Fe
+     r      =    3.178368
+     reff   =    3.189700
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.011332
+     ss2    =    0.007398
+   PATH     4
+     feff   = feff/feff0004.dat
+     id     = reff=  3.4594, degen= 20.0, path: Fe->C->C->C->Fe
+     r      =    3.447109
+     reff   =    3.459400
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.012291
+     ss2    =    0.012565
+   PATH     5
+     feff   = feff/feff0005.dat
+     id     = reff=  3.7066, degen= 10.0, path: Fe->C->C->Fe
+     r      =    3.693431
+     reff   =    3.706600
+     degen  =   10.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.013169
+     ss2    =    0.008477
+   PATH     6
+     feff   = feff/feff0006.dat
+     id     = reff=  3.8505, degen= 20.0, path: Fe->C->C->Fe
+     r      =    3.836820
+     reff   =    3.850500
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.013680
+     ss2    =    0.008600
+   PATH     7
+     feff   = feff/feff0007.dat
+     id     = reff=  3.8955, degen= 32.0, path: Fe->C->C->C->Fe
+     r      =    3.881660
+     reff   =    3.895500
+     degen  =   32.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.013840
+     ss2    =    0.011046
+   PATH     8
+     feff   = feff/feff0008.dat
+     id     = reff=  4.0617, degen= 20.0, path: Fe->C->C->Fe
+     r      =    4.047270
+     reff   =    4.061700
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.014430
+     ss2    =    0.008827
+   PATH     9
+     feff   = feff/feff0009.dat
+     id     = reff=  4.0956, degen= 20.0, path: Fe->C->Fe->C->Fe
+     r      =    4.081049
+     reff   =    4.095600
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.014551
+     ss2    =    0.008973
+   PATH    10
+     feff   = feff/feff0010.dat
+     id     = reff=  4.0956, degen= 20.0, path: Fe->C->Fe->C->Fe
+     r      =    4.081049
+     reff   =    4.095600
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.014551
+     ss2    =    0.009596
+   PATH    11
+     feff   = feff/feff0011.dat
+     id     = reff=  4.0956, degen= 10.0, path: Fe->C->Fe->C->Fe
+     r      =    4.081049
+     reff   =    4.095600
+     degen  =   10.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.014551
+     ss2    =    0.020685
+   PATH    12
+     feff   = feff/feff0012.dat
+     id     = reff=  4.0956, degen= 20.0, path: Fe->C->Fe->C->Fe
+     r      =    4.081049
+     reff   =    4.095600
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.014551
+     ss2    =    0.014036
+   PATH    13
+     feff   = feff/feff0013.dat
+     id     = reff=  4.0956, degen= 20.0, path: Fe->C->Fe->C->Fe
+     r      =    4.081049
+     reff   =    4.095600
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.014551
+     ss2    =    0.010914
+   PATH    14
+     feff   = feff/feff0014.dat
+     id     = reff=  4.3317, degen= 20.0, path: Fe->C->C->C->Fe
+     r      =    4.316310
+     reff   =    4.331700
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.015390
+     ss2    =    0.018926
+   PATH    15
+     feff   = feff/feff0015.dat
+     id     = reff=  4.3317, degen= 20.0, path: Fe->C->C->C->Fe
+     r      =    4.316310
+     reff   =    4.331700
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.015390
+     ss2    =    0.013420
+   PATH    16
+     feff   = feff/feff0016.dat
+     id     = reff=  4.5563, degen= 32.0, path: Fe->C->C->C->Fe
+     r      =    4.540112
+     reff   =    4.556300
+     degen  =   32.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.016188
+     ss2    =    0.008944
+   PATH    17
+     feff   = feff/feff0017.dat
+     id     = reff=  4.7674, degen= 40.0, path: Fe->C->C->C->Fe
+     r      =    4.750462
+     reff   =    4.767400
+     degen  =   40.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.016938
+     ss2    =    0.009833
+   PATH    18
+     feff   = feff/feff0018.dat
+     id     = reff=  4.7675, degen= 32.0, path: Fe->C->C->C->Fe
+     r      =    4.750562
+     reff   =    4.767500
+     degen  =   32.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.016938
+     ss2    =    0.009462
+   PATH    19
+     feff   = feff/feff0019.dat
+     id     = reff=  4.9925, degen= 40.0, path: Fe->C->C->C->Fe
+     r      =    4.974763
+     reff   =    4.992500
+     degen  =   40.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.017737
+     ss2    =    0.010175
+   PATH    20
+     feff   = feff/feff0020.dat
+     id     = reff=  4.9925, degen= 40.0, path: Fe->C->C->C->Fe
+     r      =    4.974763
+     reff   =    4.992500
+     degen  =   40.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.017737
+     ss2    =    0.010781
+   PATH    21
+     feff   = feff/feff0021.dat
+     id     = reff=  5.2036, degen= 40.0, path: Fe->C->C->C->Fe
+     r      =    5.185113
+     reff   =    5.203600
+     degen  =   40.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.018487
+     ss2    =    0.011248
+   PATH    22
+     feff   = feff/feff0022.dat
+     id     = reff=  5.8644, degen= 40.0, path: Fe->C->C->C->Fe
+     r      =    5.843565
+     reff   =    5.864400
+     degen  =   40.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.020835
+     ss2    =    0.016427
+   PATH    23
+     feff   = feff/feff0023.dat
+     id     = reff=  5.5093, degen= 40.0, path: Fe->C->C->C->Fe
+     r      =    5.489727
+     reff   =    5.509300
+     degen  =   40.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.019573
+     ss2    =    0.016033
+   PATH    24
+     feff   = feff/feff0024.dat
+     id     = reff=  5.6532, degen= 20.0, path: Fe->C->C->C->Fe
+     r      =    5.633115
+     reff   =    5.653200
+     degen  =   20.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.020085
+     ss2    =    0.022066
+   PATH    25
+     feff   = feff/feff0025.dat
+     id     = reff=  5.7205, degen= 40.0, path: Fe->C->C->C->Fe
+     r      =    5.700176
+     reff   =    5.720500
+     degen  =   40.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.020324
+     ss2    =    0.013192
+   PATH    26
+     feff   = feff/feff0026.dat
+     id     = reff=  5.8644, degen= 40.0, path: Fe->C->C->C->Fe
+     r      =    5.843565
+     reff   =    5.864400
+     degen  =   40.000000
+     n*s02  =    1.092468
+     e0     =   -3.607391
+     dr     =   -0.020835
+     ss2    =    0.013247
+ e0_cor         =     -3.60739058 +/-      1.92735273
+ alpha          =     -0.00355281 +/-      0.00813452
+ theta          =    651.19839099 +/-    377.36150273
+ ss2            =      1.09246824 +/-      0.20914370
+ chi_square     =      61.121112252
+ chi_reduced    =       7.919526629
+ r_factor       =       0.027986146
+ epsilon_k      =       0.000470388
+ epsilon_r      =       0.000122338
+ n_idp          =      11.717773438
+ n_varys        =       4.000000000
+ &fit_iteration =       7.000000000
+ kweight        =       0.000000000
+     
+     
+     
+     

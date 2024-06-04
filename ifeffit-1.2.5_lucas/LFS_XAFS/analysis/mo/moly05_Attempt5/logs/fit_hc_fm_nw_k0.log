@@ -1,0 +1,6 @@
+ guess (e0_cor=0.0)
+ guess (alpha=0.0)
+ guess (theta=385)
+ guess (s02_1=1.0)
+ path (index=1,feff=feff/feff0001.dat, label=path 1, s02=s02_1,e0=e0_cor)
+ path (1, sigma2=debye(293,max(0,theta)))

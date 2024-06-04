@@ -1,0 +1,102 @@
+ TITLE Ferrocene PUBLISHED DATA
+
+ 
+ *HOLE 1   1.0   *  Fe K edge  (7112.0 eV), second number is S0^2
+ EDGE      K
+ S02       1.0
+
+ *         pot    xsph  fms   paths genfmt ff2chi
+ CONTROL   1      1     1     1    1    1 
+ PRINT     1      1     0     1    0    3
+  
+ ** RMULTIPLIER all atomic coordinates are multiplied 
+ ** by the supplied values
+ ** useful to adjust lattice spacing, rmult=1.01 - increases by 1%
+ *  RMULTIPLIER 1.01
+
+ ** ixc  [vr  vi]; ixc=0 means to use Hedin-Lundvist
+ ** 0  2.  1 : Hedin-Lun -2 eV edge shift & 1 eV expt broadening
+ * EXCHANGE  0
+
+ ** reduce e0 by 3.0 eV and add 1 eV of broadening (full width)
+ ** this will only affect module 4, ff2chi
+ * CORRECTIONS 3.0  1.0 
+
+ ** scf confirms self-consistent potential calculations
+ ** radius of small cluster for self-consistency calc
+ ** r_scf  [l_scf  n_scf  ca]
+ * SCF  4.  
+
+ ** Upper limit of XANES calc
+ ** MUST be uncommented to let FEFF
+ ** calculate full multiple scattering
+ ** rather than a path expansion
+ **         kmax   [ delta_k  delta_e ]
+ * XANES       6.  
+
+ ** Radius of cluster for Full Multiple
+ ** scattering calc
+ ** l_fms =0 for solid, 1 for molecule
+ * FMS    4.   1
+
+ ** Energy grid over which to calculate
+ ** DOS functions
+ **	emin	emax	resolution
+ * LDOS -10   5	  0.1
+
+ ** for EXAFS: RMAX 9.0 & uncomment
+ ** the EXAFS card
+ RMAX    5.0
+ 
+ ** max^m effective distance, equivalent to RMAX in FEFF7
+ ** needed to set limits on calc paths for EXAFS 
+ ** include MS paths with effective length unto 4.5 Ang
+ * RPATH   4.5
+ EXAFS   15.0
+ 
+ *CRITERIA     curved   plane
+
+ ** Debye-Waller factors temp in K
+ ** idwopt=0, confirms that correlated Debye model is used
+ ** to calc EXAFS DW factors
+ **            temp     debye-temp   [idwopt]
+ * DEBYE      70.   130.   0.
+
+ ** add 0.001 globally to all DW factors
+ SIG2  0.001
+
+ ** NLEG card limits the number of scattering paths to leg, NLEG=2 
+ ** gives  single 
+ ** scattering paths. the default is nleg=8
+ NLEG  8      
+
+
+ POTENTIALS
+ *    ipot   Z  element
+        0   26   Fe                
+        1    6   C
+        2    1   H        
+
+ ATOMS                          * this list contains 11 atoms
+ *   x          y          z      ipot  tag
+  0.00000000    0.00000000    0.00000000 0 Fe
+ -0.71407200   -0.98283600    1.67361400 1 C 
+  0.71407200    0.98283600   -1.67361400 1 C 
+  0.00000000    1.21485200    1.67361400 1 C 
+ -1.15539300    0.37541000    1.67361400 1 C 
+  1.15539300    0.37541000    1.67361400 1 C 
+  0.71407200   -0.98283600    1.67361400 1 C 
+  1.15539300   -0.37541000   -1.67361400 1 C 
+  0.00000000   -1.21485200   -1.67361400 1 C 
+ -1.15539300   -0.37541000   -1.67361400 1 C 
+ -0.71407200    0.98283600   -1.67361400 1 C 
+  1.35026800    1.85848400   -1.65952200 2 H 
+ -2.18477900   -0.70987800   -1.65952200 2 H 
+ -1.35026800    1.85848400   -1.65952200 2 H 
+  0.00000000    2.29721300    1.65952200 2 H 
+ -2.18477900    0.70987800    1.65952200 2 H 
+  2.18477900    0.70987800    1.65952200 2 H 
+ -1.35026800   -1.85848400    1.65952200 2 H 
+  1.35026800   -1.85848400    1.65952200 2 H 
+  2.18477900   -0.70987800   -1.65952200 2 H 
+  0.00000000   -2.29721300   -1.65952200 2 H  END

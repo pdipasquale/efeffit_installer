@@ -1,0 +1,19 @@
+ name:     copper
+ formula:  Cu
+ sites:    Cu1
+ refer1:   Kittel, ISSP
+ refer2:
+ schoen:
+ notes1:   metal, fcc
+ -----------------------------------------------------------------------
+    1  6.354647E-02   0   0
+    0  0.000000E+00  0.000000E+00    0 ixc, vr0, vi0, ixc0
+    0  0.000000E+00  3.704241E-02  1.058354E+01
+    0    0 jumprm, mbconv
+    1  nph
+    0   29  0.000 iph, iz, ion
+    1   29  0.000 iph, iz, ion
+    0    1         1.0    1.150000    0    2 iph, iat, xnat, folp, novr, lmax
+ 'Cu    '  potlbl
+    1    2       400.0    1.150000    0    2 iph, iat, xnat, folp, novr, lmax
+ 'Cu    '  potlbl

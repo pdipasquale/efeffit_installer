@@ -1,0 +1,10 @@
+ name:     copper
+ formula:  Cu
+ sites:    Cu1
+ refer1:   Kittel, ISSP
+ refer2:
+ schoen:
+ notes1:   metal, fcc
+ Rmax  0.1000,  keep limit  0.000, heap limit  0.000
+ Plane wave chi amplitude filter   2.50%
+ -----------------------------------------------------------------------

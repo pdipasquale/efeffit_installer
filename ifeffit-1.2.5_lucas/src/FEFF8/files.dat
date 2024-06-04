@@ -1,0 +1,13 @@
+ name:     copper                                                 Feff 8.10
+ formula:  Cu
+ sites:    Cu1
+ refer1:   Kittel, ISSP
+ refer2:
+ schoen:
+ notes1:   metal, fcc
+ Abs   Z=29 Rmt= 1.407 Rnm= 1.452 K  shell
+ Pot 1 Z=29 Rmt= 1.353 Rnm= 1.390
+ Gam_ch=1.729E+00 H-L exch
+ Mu=-7.603E+00 kf=1.992E+00 Vint=-1.688E+01 Rs_int= 1.821
+ -----------------------------------------------------------------------
+    file        sig2   amp ratio    deg    nlegs  r effective

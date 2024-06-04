@@ -1,0 +1,30 @@
+ Calculating cross-section and phases...
+              LDOS calculation for specified grid
+ Calculating energy and space depedent l-DOS.
+ It takes time ...
+     potential type  0
+     potential type  1
+ Number of energy points = 101
+ Doing FMS for a cluster of  55 atoms around iph =  0
+ Please, wait (updates every 20 points) ...
+        FMS matrix (LUD) at point  20, number of state kets = 495
+        FMS matrix (LUD) at point  40, number of state kets = 495
+        FMS matrix (LUD) at point  60, number of state kets = 495
+        FMS matrix (LUD) at point  80, number of state kets = 495
+        FMS matrix (LUD) at point 100, number of state kets = 495
+ Number of energy points = 101
+ Doing FMS for a cluster of  55 atoms around iph =  1
+ Please, wait (updates every 20 points) ...
+        FMS matrix (LUD) at point  20, number of state kets = 495
+        FMS matrix (LUD) at point  40, number of state kets = 495
+        FMS matrix (LUD) at point  60, number of state kets = 495
+        FMS matrix (LUD) at point  80, number of state kets = 495
+        FMS matrix (LUD) at point 100, number of state kets = 495
+ Calculating chi and rho...    0
+ Calculating chi and rho...    1
+    absorption cross section
+    phase shifts for unique potential    0
+ WARNING: increase ltot in dim.h for more accuracy at high k to  28
+    phase shifts for unique potential    1
+ WARNING: increase ltot in dim.h for more accuracy at high k to  27
+ Done with module 2: cross-section and phases...

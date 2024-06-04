@@ -1,0 +1,45 @@
+ guess (e0_cor=0.0)
+ guess (theta=315)
+ guess (s02=1.0)
+
+ path (index=1,feff=feff/feff0001.dat, label=path 1, s02=s02,e0=e0_cor)
+ path (1, sigma2=debye(293,max(0,theta)))
+
+ path (index=2,feff=feff/feff0002.dat, label=path 2, s02=s02,e0=e0_cor)
+ path (2, sigma2=debye(293,max(0,theta)))
+
+ path (index=3,feff=feff/feff0003.dat, label=path 3, s02=s02,e0=e0_cor)
+ path (3, sigma2=debye(293,max(0,theta)))
+ path (index=4,feff=feff/feff0004.dat, label=path 4, s02=s02,e0=e0_cor)
+ path (4, delr=alpha*path4_reff)
+ path (index=5,feff=feff/feff0005.dat, label=path 5, s02=s02,e0=e0_cor)
+ path (5, sigma2=debye(293,max(0,theta)))
+ path (index=6,feff=feff/feff0006.dat, label=path 6, s02=s02,e0=e0_cor)
+ path (6, sigma2=debye(293,max(0,theta)))
+ path (index=7,feff=feff/feff0007.dat, label=path 7, s02=s02,e0=e0_cor)
+ path (7, sigma2=debye(293,max(0,theta)))
+ path (index=8,feff=feff/feff0008.dat, label=path 8, s02=s02,e0=e0_cor)
+ path (8, sigma2=debye(293,max(0,theta)))
+ path (index=9,feff=feff/feff0009.dat, label=path 9, s02=s02,e0=e0_cor)
+ path (9, sigma2=debye(293,max(0,theta)))
+ path (index=10,feff=feff/feff0010.dat, label=path 10, s02=s02,e0=e0_cor)
+ path (10, sigma2=debye(293,max(0,theta)))
+ path (index=11,feff=feff/feff0011.dat, label=path 11, s02=s02,e0=e0_cor)
+ path (11, sigma2=debye(293,max(0,theta)))
+ path (index=12,feff=feff/feff0012.dat, label=path 12, s02=s02,e0=e0_cor)
+ path (12, sigma2=debye(293,max(0,theta)))
+ 
+ path (index=13,feff=feff/feff0017.dat, label=path 17, s02=s02,e0=e0_cor)
+ path (13, sigma2=debye(293,max(0,theta)))
+
+ path (index=14,feff=feff/feff0014.dat, label=path 14, s02=s02,e0=e0_cor)
+ path (14, sigma2=debye(293,max(0,theta)))
+
+ path (index=15,feff=feff/feff0018.dat, label=path 18, s02=s02,e0=e0_cor)
+ path (15, sigma2=debye(293,max(0,theta)))
+ 
+ path (index=16,feff=feff/feff0016.dat, label=path 16, s02=s02,e0=e0_cor)
+ path (16, sigma2=debye(293,max(0,theta)))
+
+ show(@paths)
+

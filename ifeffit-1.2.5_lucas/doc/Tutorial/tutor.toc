@@ -1,0 +1,32 @@
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}
+\contentsline {subsection}{\numberline {1.1}Running {{{\scshape {ifeffit}}}}}{1}{subsection.1.1}
+\contentsline {section}{\numberline {2}Data, Commands, and Simple Data Manipulation}{2}{section.2}
+\contentsline {subsection}{\numberline {2.1}Data Types and Naming Conventions}{2}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Data Manipulation}{3}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Commands and their conventions}{4}{subsection.2.3}
+\contentsline {subsection}{\numberline {2.4}Storing Definitions of Scalars and Arrays: {\tt {show()}} and {\tt {def()}}}{4}{subsection.2.4}
+\contentsline {subsection}{\numberline {2.5}The {\tt {show()}} command}{5}{subsection.2.5}
+\contentsline {subsection}{\numberline {2.6}The {\tt {print()}} command}{6}{subsection.2.6}
+\contentsline {subsection}{\numberline {2.7}Command Files}{7}{subsection.2.7}
+\contentsline {section}{\numberline {3}Reading Arrays from Data Files}{8}{section.3}
+\contentsline {section}{\numberline {4}Plotting Data}{9}{section.4}
+\contentsline {section}{\numberline {5}XAFS Data Processing}{10}{section.5}
+\contentsline {subsection}{\numberline {5.1}Data Reduction}{10}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Pre-Edge Subtraction, E0 determination, and Normalization}{10}{subsection.5.2}
+\contentsline {subsection}{\numberline {5.3}Post-Edge Background Subtraction}{11}{subsection.5.3}
+\contentsline {subsection}{\numberline {5.4}Fourier Transforms}{12}{subsection.5.4}
+\contentsline {subsubsection}{\numberline {5.4.1}Forward Fourier Transforms}{12}{subsubsection.5.4.1}
+\contentsline {subsubsection}{\numberline {5.4.2}Reverse Fourier Transforms}{13}{subsubsection.5.4.2}
+\contentsline {section}{\numberline {6}XAFS Analysis}{15}{section.6}
+\contentsline {subsection}{\numberline {6.1}Defining Paths}{15}{subsection.6.1}
+\contentsline {subsection}{\numberline {6.2}Combining Paths}{16}{subsection.6.2}
+\contentsline {subsection}{\numberline {6.3}Getting and Viewing Path Parameters}{17}{subsection.6.3}
+\contentsline {subsection}{\numberline {6.4}{\tt {feffit()}}: Fitting XAFS Data with Paths}{18}{subsection.6.4}
+\contentsline {subsection}{\numberline {6.5}Uncertainties in Fitted Variables, Fitting Statistics}{19}{subsection.6.5}
+\contentsline {section}{\numberline {7}Modeling non-XAFS data}{21}{section.7}
+\contentsline {section}{\numberline {8}Saving data and logging your {{{\scshape {ifeffit}}}} session}{22}{section.8}
+\contentsline {subsection}{\numberline {8.1}Writing output data files}{22}{subsection.8.1}
+\contentsline {subsection}{\numberline {8.2}Writing log files}{22}{subsection.8.2}
+\contentsline {subsection}{\numberline {8.3}Saving the state of an {{{\scshape {ifeffit}}}} session}{23}{subsection.8.3}
+\contentsline {section}{\numberline {9}Defining and Using Macros}{24}{section.9}
+\contentsline {section}{\numberline {10}The {\tt {ifeffit}} command-line program}{25}{section.10}

@@ -1,0 +1,160 @@
+   PATH     1
+     feff   = feff/feff0001.dat
+     id     = reff=  2.5527, degen= 12.0, path: Cu->Cu->Cu
+     r      =    2.552700
+     reff   =    2.552700
+     degen  =   12.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.008847
+   PATH     2
+     feff   = feff/feff0002.dat
+     id     = reff=  3.6100, degen=  6.0, path: Cu->Cu->Cu
+     r      =    3.610000
+     reff   =    3.610000
+     degen  =    6.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.010931
+   PATH     3
+     feff   = feff/feff0003.dat
+     id     = reff=  3.8290, degen= 48.0, path: Cu->Cu->Cu->Cu
+     r      =    3.829000
+     reff   =    3.829000
+     degen  =   48.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.009953
+   PATH     4
+     feff   = feff/feff0004.dat
+     id     = reff=  4.3577, degen= 48.0, path: Cu->Cu->Cu->Cu
+     r      =    4.357700
+     reff   =    4.357700
+     degen  =   48.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.000000
+   PATH     5
+     feff   = feff/feff0005.dat
+     id     = reff=  4.4213, degen= 24.0, path: Cu->Cu->Cu
+     r      =    4.421300
+     reff   =    4.421300
+     degen  =   24.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011264
+   PATH     6
+     feff   = feff/feff0006.dat
+     id     = reff=  4.7633, degen= 48.0, path: Cu->Cu->Cu->Cu
+     r      =    4.763300
+     reff   =    4.763300
+     degen  =   48.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011313
+   PATH     7
+     feff   = feff/feff0007.dat
+     id     = reff=  4.7633, degen= 96.0, path: Cu->Cu->Cu->Cu
+     r      =    4.763300
+     reff   =    4.763300
+     degen  =   96.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011313
+   PATH     8
+     feff   = feff/feff0008.dat
+     id     = reff=  5.1053, degen= 12.0, path: Cu->Cu->Cu
+     r      =    5.105300
+     reff   =    5.105300
+     degen  =   12.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011418
+   PATH     9
+     feff   = feff/feff0009.dat
+     id     = reff=  5.1053, degen= 12.0, path: Cu->Cu->Cu->Cu
+     r      =    5.105300
+     reff   =    5.105300
+     degen  =   12.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011418
+   PATH    10
+     feff   = feff/feff0010.dat
+     id     = reff=  5.1053, degen= 24.0, path: Cu->Cu->Cu->Cu
+     r      =    5.105300
+     reff   =    5.105300
+     degen  =   24.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011418
+   PATH    11
+     feff   = feff/feff0011.dat
+     id     = reff=  5.1053, degen= 12.0, path: Cu->Cu->Cu->Cu->Cu
+     r      =    5.105300
+     reff   =    5.105300
+     degen  =   12.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011418
+   PATH    12
+     feff   = feff/feff0012.dat
+     id     = reff=  5.1053, degen= 12.0, path: Cu->Cu->Cu->Cu->Cu
+     r      =    5.105300
+     reff   =    5.105300
+     degen  =   12.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.035390
+   PATH    13
+     feff   = feff/feff0017.dat
+     id     = reff=  5.9353, degen= 48.0, path: Cu->Cu->Cu->Cu
+     r      =    5.935300
+     reff   =    5.935300
+     degen  =   48.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011842
+   PATH    14
+     feff   = feff/feff0014.dat
+     id     = reff=  5.1053, degen= 12.0, path: Cu->Cu->Cu->Cu->Cu
+     r      =    5.105300
+     reff   =    5.105300
+     degen  =   12.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011418
+   PATH    15
+     feff   = feff/feff0018.dat
+     id     = reff=  5.9353, degen= 48.0, path: Cu->Cu->Cu->Cu
+     r      =    5.935300
+     reff   =    5.935300
+     degen  =   48.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011842
+   PATH    16
+     feff   = feff/feff0016.dat
+     id     = reff=  5.7079, degen= 24.0, path: Cu->Cu->Cu
+     r      =    5.707900
+     reff   =    5.707900
+     degen  =   24.000000
+     n*s02  =    1.000000
+     e0     =    0.000000
+     dr     =    0.000000
+     ss2    =    0.011679

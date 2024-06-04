@@ -1,0 +1,210 @@
+#!/usr/bin/perl -w
+
+
+use strict;
+use Getopt::Long;
+
+my ($force, $file) = (0,0);
+&GetOptions(help => \&usage, h => \&usage, force => \$force, "file=s" => \$file);
+
+sub usage {
+  print <<EOH
+horae_update : automated web updater for athena and artemis
+
+usage: horae_update [--force] [--file=<tarball>] [--help] [-h]
+
+        option          effect
+      -----------------------------------
+	--help, -h     print usage message and exit
+	--file         specify previously downloaded tarball
+	--force        download and install, igoring comparison of version
+	                  numbers on the server and the local machine
+EOH
+  ;
+  exit;
+};
+
+## need to see what version of the tarball is already installed,
+## taking care with the cases of it not being installed and of a
+## version prior to 020 being installed
+my $already_installed = eval "require Ifeffit::Tools;";
+my $installed_version = 0;
+if ($already_installed) {
+  no warnings;
+  import Ifeffit::Tools;
+  $installed_version = $Ifeffit::Tools::VERSION;
+  ($installed_version = 0) if ($installed_version =~ /^\s*$/);
+};
+
+## write progress to a log file
+$| = 1;
+open STDOUT, "| tee horae_update.log";
+
+print " = Horae Updater (using LWP::Simple) version 0.3\n";
+
+
+## We are going to need LWP.  Check to see if it is there, if it is
+## not and root is running this script, fetch LWP from CPAN.
+unless (defined (eval "require LWP::Simple;")) {
+  if ( $> ) {
+    print <<EOH
+
+    *** You need to install perl\'s web services modules.
+    *** The easiest way to do this is to become root and
+    *** then issue this command:
+    ***      perl -MCPAN -e shell
+    *** then, at the CPAN prompt, type
+    ***      install LWP
+
+EOH
+  ;
+    die "\n";
+  } else {
+    print <<EOH
+
+ = Hmmm.... you do not seem to have perl\'s web services installed
+ = I am going to attempt to load the CPAN module and grab LWP
+ = from a nearby CPAN site.  If you have never used CPAN before,
+ = you may need to answer some questions.  This requires that you
+ = have access to the internet.
+
+EOH
+  ;
+    print " = Shall I go ahead and try CPAN?  (y/n) ";
+    my $yn = <>;
+    exit unless ($yn =~ /^y/i);
+    require CPAN;
+    CPAN::Shell->install("LWP");
+  };
+  unless (defined (eval "require LWP::Simple;")) {
+    die " = Apparently attempting to fetch LWP from CPAN didn't work.  I give up!\n";
+  };
+};
+import LWP::Simple;
+
+## set some variables about where to find the horae tarball on the web
+my %horae = (site => "feff.phys.washington.edu",
+	     path => "software/exafs/packages",);
+$horae{dir} = "http://$horae{site}/~ravel/$horae{path}/";
+my $content;
+
+## fetch a directory listing
+print " = Attempting to fetch a directory listing from\n =    $horae{dir}\n";
+unless (defined ($content = get($horae{dir}))) {
+  die "could not fetch $horae{dir} from server\n";
+};
+
+
+## figure out what the current version number is on the server
+my @list = grep(/horae/, split(/\n/, $content));
+@list = map{(split(/\"/, $_))[5]} @list;
+foreach my $t (sort @list) {
+  next unless ($t =~ /^horae-\d+/);
+  $horae{vnum} = (split(/\./, $t))[0];
+};
+die " *** Yikes!  Apparently no horae tarballs were found on the server!\n" unless $horae{vnum};
+my $version = (split(/-/, $horae{vnum}))[1];
+unless ($force) {
+  unless ($version > $installed_version) {
+    warn "\n = Well, the current version on the server is $horae{vnum} and you\n";
+    warn " = appear to be running horae-$Ifeffit::Tools::VERSION.\n";
+    die  "            exiting...\n";
+  };
+};
+
+## fetch and save the tarball
+print "\n = Found the latest version as $horae{vnum}\n";
+print " = Upgrading from version horae-$Ifeffit::Tools::VERSION\n\n";
+
+
+## the --force option should override using the file found in the CWD
+## (see if/elsif block just below)
+if ($force and (-e "$horae{vnum}.tar.gz")) {
+  unlink "$horae{vnum}.tar.gz";
+  print " = Forcing installation of $horae{vnum}.tar.gz from the server, as requested\n";
+};
+
+
+my $used_preexisting = 0;
+if ($file and (-e $file) and (-s $file)) {
+  print " = using tarball $file as requested\n";
+  $used_preexisting = 1;
+} elsif ((-e "$horae{vnum}.tar.gz") and (-s "$horae{vnum}.tar.gz")) {
+  print " = It seems you have already downloaded the tarball.  I'll use the\n";
+  print " = one that's already here\n";
+  $used_preexisting = 1;
+} else {
+  print " = Attempting to fetch the latest tarball from\n =    $horae{dir}$horae{vnum}.tar.gz\n";
+  my $response = getstore("$horae{dir}/$horae{vnum}.tar.gz", "$horae{vnum}.tar.gz");
+  print " = $horae{vnum}.tar.gz fetched with HTTP status $response: ", status_message($response), $/;
+  die "could not fetch $horae{vnum}.tar.gz from server\n" unless (-e "$horae{vnum}.tar.gz");
+  print " = Wrote latest tarball to $horae{vnum}.tar.gz\n";
+};
+
+
+
+## unzip and untar the tarball
+print " = Extracting package files from $horae{vnum}.tar.gz\n";
+my $unpack = system "gzip -dc $horae{vnum}.tar.gz | tar xf -";
+
+## test return value of that system call
+if ($unpack) {
+  warn " = Uh oh!  There was trouble unpacking the tarball.\n";
+  if ($used_preexisting) {
+    warn " = Try running \"horae_update --force\" to force installation of the";
+    warn " = tarball from the server.\n";
+  } else {
+    warn " = Perhaps there is a problem with the tarball on the server.\n";
+    warn " = Contact Bruce at ravel\@phys.washington.edu\n";
+  };
+  die  "            exiting...\n";
+};
+
+## cd to the directory and build the package
+print " = Changing directory to $horae{vnum}\n";
+chdir $horae{vnum};
+print " = Beginning build incantation \"perl Makefile.PL; make; make install\"\n";
+print " =   (perl Makefile.PL)\n";
+do "Makefile.PL";
+print " =   (make)\n";
+system "make";
+if ( $> ) {
+  print <<EOH
+
+ *** You must be root to install the horae programs.
+ *** Become root, then issue this command:
+ ***      make install
+ *** in the $horae{vnum} directory.
+
+EOH
+  ;
+} else {
+  print " =   (make install)\n";
+  system "make install";
+};
+
+## all done!
+print STDOUT "\n\n           All done!\n";
+
+__END__
+
+  To Do:
+  *  Use LWP:UserAgetent for better feedback in the case of trouble
+  *  Filter build output in the Perl Cookbook 16.5 sense so that the
+     output of this script and the build can be read by Emacs as a
+     narrowed outline.  Also, then, postpend some local varaibles
+     stuff.
+  *  Use Archive::Tar rather than a system call for unpacking the
+     tarball.
+
+
+  Release history:
+
+  0.3 (6 May, 2003) Compare version numbers on local host and on
+      server, also check to see if a tarball is already in CWD, allow
+      several options (--help, --force, and --file) using Getopt::Long,
+      test return value of system call to unpack archive
+  0.2 (31 January, 2003) Use getstore function and check HTTP status,
+      improved regex for distinguishing a tarball from any other file
+      with the string "horae" in it
+  0.1 (28 January, 2003) Initial release

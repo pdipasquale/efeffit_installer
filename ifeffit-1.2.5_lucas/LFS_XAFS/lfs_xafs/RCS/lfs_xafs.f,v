@@ -1,0 +1,4238 @@
+head	1.13;
+access;
+symbols;
+locks
+	lucasfs:1.13; strict;
+comment	@c @;
+
+
+1.13
+date	2005.06.09.07.54.10;	author lucasfs;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	2005.06.09.07.50.36;	author lucasfs;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2005.01.19.22.27.54;	author lucasfs;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2004.10.28.14.13.06;	author lucasfs;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2004.10.26.05.54.09;	author lucasfs;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2004.10.26.05.54.01;	author lucasfs;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2004.10.26.05.53.50;	author lucasfs;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2004.10.26.05.53.41;	author lucasfs;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2004.10.26.05.53.32;	author lucasfs;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2004.10.26.05.53.21;	author lucasfs;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2004.10.26.05.52.56;	author lucasfs;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2004.10.26.05.52.42;	author lucasfs;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2004.10.26.05.51.38;	author lucasfs;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.13
+log
+@deleted unused chi2 function
+@
+text
+@c     XAFS Analysis Tool utilizing ifeffit
+c     Wrritten by: Lucas Smale, Grant Schuster
+c     Supervisor:  Chris Chantler
+c     Started:     17 September 2003
+c
+c     This program relies on ifeffit version 1.2.3 or later and 
+c     PGPLOT being installed.
+c     This program sends commands to iffefit, gets the results back and
+c     does a fitting procedure to minimise chisq difference in either
+c     momentum or real space and with different k-weightings.
+c
+c     To execute this program compile using:
+c     'make' with the Makefile configured according to the
+c     ifeffit documentation
+c     and, while using csh, add an alias to your .cshrc file to
+c     make life easier:
+c     alias gms_xafs home/your_user_name/path_to_program/gms_xafs
+c     Then go to the directory where your FEFF8 and experimental data
+c     is and type 'gms_xafs' to run.  
+c ---------------------------------------------------------------
+      implicit none
+
+      integer i,j
+      integer max_num_paths
+      real*8 kmin,kmax,dk
+      real*8 kweight
+
+      real*8 rmin,rmax,dr
+      real*8 e0
+
+      integer do_plots
+      integer windowing
+      integer full_model
+      integer real_chi2
+      character*128 arg1
+      character*128 ifeffit_arg
+      character*128 winstr,kwstr,realstr, filestr
+      integer n_args
+
+c     Tell the program where to find the ifeffit library file:
+      include '/home/lucasfs/ifeffit/share/ifeffit/config/ifeffit.inc'
+  
+c     Initialise the menu_selection so it doesn't quit on the first
+c     iteratiom
+      do_plots = 0
+      windowing = 1
+      max_num_paths=16
+      full_model = 1
+      real_chi2=0
+c     Initialise ifeffit and
+c     Set up for screen echo so that we can see what is being
+c     reported in IFEFFIT:
+      i = ifeffit(' ')
+      i = ifeffit('reset')
+      i = ifeffit('history(lfs_xafs_his.txt)')
+
+c     Initialise some parameters
+
+      e0=2.0008d4
+
+      kmin=2.0d0
+      kmax=1.30d1
+      dk=3.d-1
+
+
+      rmin=1.6d0
+      rmax=5.3d0
+      dr=3.d-1
+
+      kweight=0.0d0
+      
+      n_args = iargc()
+      i = 1
+      do while (i.le.n_args)
+        call getarg(i,arg1)
+        if (arg1.eq.'-kw') then
+          i=i+1
+          call getarg(i,arg1)
+          read(arg1,*) kweight
+          write(*,*)'kweight set'
+        else if (arg1.eq.'-np') then
+          i=i+1
+          call getarg(i,arg1)
+          read(arg1,*) max_num_paths
+          write(*,*)'num paths set'
+        else if (arg1.eq.'-plots') then
+          do_plots = 1
+          write(*,*)'will do plots'
+        else if (arg1.eq.'-nw') then
+          windowing = 0
+          write(*,*)'nowindowing'
+        else if (arg1.eq.'-rm') then
+          full_model = 0
+          write(*,*)'will load reduced model'
+        else if (arg1.eq.'-frm') then
+          full_model = -1
+          write(*,*)'will load further reduced model'
+        else if (arg1.eq.'-hc') then
+          real_chi2 = 1
+          write(*,*)'will use accurate chi2l'
+        else if (arg1.eq.'-w') then
+          i=i+1
+          call getarg(i,arg1)
+          read(arg1,*) kmin
+          i=i+1
+          call getarg(i,arg1)
+          read(arg1,*) kmax
+          i=i+1
+          call getarg(i,arg1)
+          read(arg1,*) dk
+        else
+          write(*,*)'Usage - lfs_xafs [-nw] [-kw n] [-w n n n]'
+          return
+        end if
+        i=i+1
+      end do
+
+
+
+c          if(windowing.eq.0) then
+c            write(winstr,'(A,I1,A,I2,A)')
+c     $                   'w',int(kmin),'-',int(kmax),'_'
+c          else
+c            winstr = ''
+c          endif
+
+c          write(kwstr,'(A,I1,A)'),'k',int(kweight),'_'
+
+c          if(real_chi2.eq.1) then
+c            realstr = 'chi2'
+c          else
+c            realstr = ''
+c          end if
+
+c          write(filestr,'(A,A,A,A)')'fit_',winstr,kwstr,realstr
+c          write(*,*) kwstr
+c          write(*,*) filestr
+
+c       return
+
+
+
+c ----- IFEFFIT MACROS:
+c     Let's create a Fourier Filter Macro in IFEFFIT:
+
+
+      i = ifeffit('macro do_kweight')
+      i = ifeffit('set $1.chik = $1.chi * $1.k^kweight')
+      i = ifeffit('set $1.chik_w = $1.chik * $1.win')
+      i = ifeffit('end macro')
+
+
+c --------------------------------------------------------------------
+
+      write(*,*)'--------------------------------------------------'
+      write(*,*)'- Welcome to Lucas\'s XAFS Analysis Tool, built  -'
+      write(*,*)'- on top of IFEFFIT and utilizing FEFF8.2.,      -'
+      write(*,*)'- derived from Grant\'s XAFS Analysis Tool       -'
+      write(*,*)'--------------------------------------------------\n'
+
+c --------------------------------------------------------------------
+
+      i = ifeffit('guess(e0_cor=0.0)')
+      i = ifeffit('guess(alpha=0.0)')
+      i = ifeffit('guess(theta=385)')
+
+      if (full_model.eq.1) then
+        call load_full_model(max_num_paths)
+      else if (full_model.eq.0) then
+        call load_redu_model(max_num_paths) 
+      else
+        call load_fredu_model(max_num_paths) 
+      end if
+
+      i = ifeffit('read_data(file=data/chi_v_k.dat,group=mudata)')
+
+      if (windowing.eq.0) then
+        i = ifeffit('kmax = ceil(mudata.k)+0.2')
+        i = iffgetsca('kmax',kmax)
+        i = ifeffit('kmin = floor(mudata.k)-0.2')
+        i = iffgetsca('kmin',kmin)
+        dk=0
+      end if
+
+      i = ifeffit('$fit_space=\'k\'')
+
+c---------------------------------------------------------------------
+c     set the E0 value
+      e0=2.0008d4
+
+c     k window setting
+      i = iffputsca('kweight',kweight)
+      i = ifeffit('show kweight')
+      
+      i = iffputsca('kmin',kmin)
+      i = ifeffit('show kmin')
+      i = iffputsca('kmax',kmax)
+      i = ifeffit('show kmax')
+      i = iffputsca('dk',dk)
+      i = ifeffit('show dk')
+      
+c     r window setting
+      i = iffputsca('rmin',rmin)
+      i = ifeffit('show rmin')
+      i = iffputsca('rmax',rmax)
+      i = ifeffit('show rmax')
+      i = iffputsca('dr',dr)
+      i = ifeffit('show dr')
+
+      i = ifeffit('do_bkg=true')
+
+
+
+      i = ifeffit('res1 = abs(min(theta,0))^16')
+      if (real_chi2.ne.1) then
+c-------------Do The Fit with feffit
+        if (max_num_paths.lt.10) then
+          write(ifeffit_arg,'(A,I1,A,A)')'feffit(1-',max_num_paths,
+     &        ', k=mudata.k, chi=mudata.chi',
+     &        ', group=fit, restraint=res1)'
+        else
+          write(ifeffit_arg,'(A,I2,A,A)')'feffit(1-',max_num_paths,
+     &        ', k=mudata.k, chi=mudata.chi',
+     &        ', group=fit, restraint=res1)'
+        end if
+        i = ifeffit(ifeffit_arg)
+
+c-------------Calculate the graph
+        if (max_num_paths.lt.10) then
+          write(ifeffit_arg,'(A,I1,A)')'ff2chi(1-',max_num_paths,
+     &                ', group=feffit, kmax=kmax+2)'
+        else
+          write(ifeffit_arg,'(A,I2,A)')'ff2chi(1-',max_num_paths,
+     &              ', group=feffit, kmax=kmax+2)'
+        end if
+        i = ifeffit(ifeffit_arg)
+
+
+
+        if (max_num_paths.lt.10) then
+          write(ifeffit_arg,'(A,I1,A,A)')'feffit2(1-',max_num_paths,
+     &        ', k=mudata.k, chi=mudata.chi, dchi=mudata.dchi',
+     &        ', group=fit, restraint=res1,onlychi2=true)'
+        else
+          write(ifeffit_arg,'(A,I2,A,A)')'feffit2(1-',max_num_paths,
+     &        ', k=mudata.k, chi=mudata.chi, dchi=mudata.dchi',
+     &        ', group=fit, restraint=res1,onlychi2=true)'
+        end if
+        i = ifeffit(ifeffit_arg)
+
+
+      else
+c-------------Do The Fit with feffit2
+        if (max_num_paths.lt.10) then
+          write(ifeffit_arg,'(A,I1,A,A)')'feffit2(1-',max_num_paths,
+     &        ', k=mudata.k, chi=mudata.chi',
+     &        ', dchi=mudata.dchi, group=fit, restraint=res1)'
+        else
+          write(ifeffit_arg,'(A,I2,A,A)')'feffit2(1-',max_num_paths,
+     &        ', k=mudata.k, chi=mudata.chi',
+     &        ', dchi=mudata.dchi, group=fit, restraint=res1)'
+        end if
+        i = ifeffit(ifeffit_arg)
+
+      endif
+
+
+
+c      i = ifeffit('show @@paths')      
+      i = ifeffit('show @@variables')
+c      i = ifeffit('correl(@@all,@@all,print)')
+      i = ifeffit('show chi_square, chi_reduced, r_factor')
+      i = ifeffit('show epsilon_k, epsilon_r, n_idp, n_varys')
+      i = ifeffit('show &fit_iteration')
+
+
+      if (real_chi2.ne.1) then
+c        call calculate_chi2(windowing)
+        if (do_plots.eq.1) then
+c         Plot the result of the paths
+
+c         Let's set the plot xrange:
+          i = ifeffit('xmin_k=0.95*(kmin-dk)')
+          i = ifeffit('xmax_k=1.05*(kmax+dk)')
+
+          i = ifeffit('do_kweight mudata')
+          i = ifeffit('do_kweight fit')
+
+          i = ifeffit('newplot(mudata.k, mudata.chik_w, color=blue,')
+         i = ifeffit('title=\'k\\uk_weight\\d\\gx(k)(windowed) vs k\',')
+          i = ifeffit('ylabel=\'k\\uk_weight\\d\\gx(k)\',xmin=xmin_k,')
+          i = ifeffit('xmax=xmax_k,')
+          i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+          i = ifeffit('plot(fit.k,fit.chik_w, color=red, style=dashed)')
+
+          i = ifeffit('plot(device="/cps",file="fit_allpaths.ps")')
+
+c       Plot the theoretical fitted data
+          i = ifeffit('newplot(mudata.k,mudata.chi,xmin=0,')
+          i = ifeffit('title=\'\\gx(k) vs k\',')
+          i = ifeffit('xmin=0,xmax=xmax_k+2,ymin=-0.15,ymax=0.15,')
+          i = ifeffit('ylabel=\'\\gx(k)\',')
+          i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+          i = ifeffit('plot(feffit.k, feffit.chi, style=dashed)')
+          if (windowing.eq.1) then
+            i = ifeffit('mudata.kwin2=0.13*mudata.win')
+            i = ifeffit('plot(mudata.k, mudata.kwin2,
+     &                    style=dotted, color=black)')
+          end if
+          i = ifeffit('plot(device="/cps",file="fit.ps")')
+        end if
+      else
+
+        if (do_plots.eq.1) then
+c         Plot the result of the paths
+
+c         Let's set the plot xrange:
+          i = ifeffit('xmin_k=0.95*(kmin-dk)')
+          i = ifeffit('xmax_k=1.05*(kmax+dk)')
+
+
+          i = ifeffit('mudata.win = fit.win')
+
+          i = ifeffit('do_kweight mudata')
+          i = ifeffit('do_kweight fit')
+
+          i = ifeffit('newplot(mudata.k, mudata.chik_w, color=blue,')
+          i =ifeffit('title=\'k\\uk_weight\\d\\gx(k)(windowed) vs k\',')
+          i = ifeffit('ylabel=\'k\\uk_weight\\d\\gx(k)\',xmin=xmin_k,')
+          i = ifeffit('xmax=xmax_k,')
+          i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+          i = ifeffit('plot(fit.k,fit.chik_w, color=red, style=dashed)')
+
+
+c       Plot the theoretical fitted data
+          i = ifeffit('newplot(mudata.k,mudata.chi,xmin=0,')
+          i = ifeffit('title=\'\\gx(k) vs k\',')
+          i = ifeffit('xmin=0,xmax=xmax_k+2,ymin=-0.15,ymax=0.15,')
+          i = ifeffit('ylabel=\'\\gx(k)\',')
+          i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+          i = ifeffit('plot(fit.k, fit.chi, style=dashed)')
+
+          if (windowing.eq.1) then
+            i = ifeffit('mudata.kwin2=0.13*mudata.win')
+            i = ifeffit('plot(mudata.k, mudata.kwin2,
+     &                    style=dotted, color=black)')
+          end if
+
+          i = ifeffit('plot(device="/ps",file="fit.ps")')
+
+        end if
+      end if
+
+c      if (windowing.eq.1) then
+c        i = ifeffit('write_data(file=spec.dat, $title*, mudata.k,
+c     &                          mudata.chi, fit.chi, mudata.kwin2)')
+c      else
+c        i = ifeffit('write_data(file=spec.dat, $title*, mudata.k,
+c     &                          mudata.chi, fit.chi)')
+c      end if
+
+      i = ifeffit('e0_final=e0+e0_cor')
+
+
+      i = ifeffit('log(file=variables.out)')
+      i = ifeffit('&screen_echo=2')
+
+      i = ifeffit('show kweight, kmin, kmax, dk')
+      i = ifeffit('show rmin, rmax, dr')
+      i = ifeffit('show chi_square, chi_reduced')
+      i = ifeffit('show epsilon_k')
+      i = ifeffit('show mychi_square, mychi_reduced')
+
+      i = ifeffit('show @@variables')
+      i = ifeffit('log(close)')
+      i = ifeffit('&screen_echo=0')
+
+
+      i=ifeffit('history(off)')
+      end
+
+
+
+
+
+
+
+c--------------------------------------------------------
+      subroutine load_full_model(num_paths)
+      integer num_paths
+      integer i,j
+      character*128 ifeffit_arg
+      
+      if (num_paths.gt.99) then
+        num_paths = 99
+        write(*,*) 'Warning: Only 99 paths loaded'
+      endif
+
+c      i = ifeffit('ss2_norm_correction=0.00023')
+c      i = ifeffit('guess(s02=0.9)')
+
+      do j=1,num_paths
+         if (j.lt.10) then
+            write(ifeffit_arg,'(A,I1,A)')'guess(s02_',j,'=1.0)'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I1,A,I1,A)')'path(index=',j,
+     &                                   ',feff=feff/feff000',j,'.dat,'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I1,A,I1,A)')'label=path ',j,
+     &                                   ', s02=s02_',j,',e0=e0_cor)'
+            i = ifeffit(ifeffit_arg)
+c            write(ifeffit_arg,'(A,I1,A,A)')'path(',j,
+c     &                        ', sigma2=debye(293,max(0,theta))+',
+c     &                        'ss2_norm_correction)'
+            write(ifeffit_arg,'(A,I1,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta)))'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I1,A,I1,A)')'get_path(',j,
+     &                                    ', prefix=path',j,')'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I1,A,I1,A)')'path(',j,
+     &                                   ', delr=alpha*path',j,'_reff)'
+            i = ifeffit(ifeffit_arg)
+         else
+            write(ifeffit_arg,'(A,I2,A)')'guess(s02_',j,'=1.0)'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I2,A,I2,A)')'path(index=',j,
+     &                                   ',feff=feff/feff00',j,'.dat,'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I2,A,I2,A)')'label=path ',j,
+     &                                   ', s02=s02_',j,',e0=e0_cor)'
+            i = ifeffit(ifeffit_arg)
+c            write(ifeffit_arg,'(A,I2,A,A)')'path(',j,
+c     &                        ', sigma2=debye(293,max(0,theta))+',
+c     &                        'ss2_norm_correction)'
+            write(ifeffit_arg,'(A,I2,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta)))'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I2,A,I2,A)')'get_path(',j,
+     &                                    ', prefix=path',j,')'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I2,A,I2,A)')'path(',j,
+     &                                   ', delr=alpha*path',j,'_reff)'
+            i = ifeffit(ifeffit_arg)
+         end if
+      end do
+
+      return
+      end
+
+
+
+
+
+
+
+
+c--------------------------------------------------------
+      subroutine load_redu_model(num_paths)
+      integer num_paths
+      integer i,j
+      character*128 ifeffit_arg
+      
+      if (num_paths.gt.99) then
+        num_paths = 99
+        write(*,*) 'Warning: Only 99 paths loaded'
+      endif
+
+c      i = ifeffit('ss2_norm_correction=0.00023')
+      i = ifeffit('guess(s02=1.0)')
+
+      do j=1,num_paths
+         if (j.lt.10) then
+            write(ifeffit_arg,'(A,I1,A,I1,A)')'path(index=',j,
+     &                                   ',feff=feff/feff000',j,'.dat,'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I1,A)')'label=path ',j,
+     &                                   ', s02=s02,e0=e0_cor)'
+            i = ifeffit(ifeffit_arg)
+c            write(ifeffit_arg,'(A,I1,A,A)')'path(',j,
+c     &                        ', sigma2=debye(293,max(0,theta))+',
+c     &                        'ss2_norm_correction)'
+            write(ifeffit_arg,'(A,I1,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta)))'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I1,A,I1,A)')'get_path(',j,
+     &                                    ', prefix=path',j,')'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I1,A,I1,A)')'path(',j,
+     &                                   ', delr=alpha*path',j,'_reff)'
+            i = ifeffit(ifeffit_arg)
+         else
+            write(ifeffit_arg,'(A,I2,A,I2,A)')'path(index=',j,
+     &                                   ',feff=feff/feff00',j,'.dat,'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I2,A)')'label=path ',j,
+     &                                   ', s02=s02,e0=e0_cor)'
+            i = ifeffit(ifeffit_arg)
+c            write(ifeffit_arg,'(A,I2,A,A)')'path(',j,
+c     &                        ', sigma2=debye(293,max(0,theta))+',
+c     &                        'ss2_norm_correction)'
+            write(ifeffit_arg,'(A,I2,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta)))'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I2,A,I2,A)')'get_path(',j,
+     &                                    ', prefix=path',j,')'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I2,A,I2,A)')'path(',j,
+     &                                   ', delr=alpha*path',j,'_reff)'
+            i = ifeffit(ifeffit_arg)
+         end if
+      end do
+
+      return
+      end
+
+
+
+c--------------------------------------------------------
+      subroutine load_fredu_model(num_paths)
+      integer num_paths
+      integer i,j
+      character*128 ifeffit_arg
+      
+      if (num_paths.gt.99) then
+        num_paths = 99
+        write(*,*) 'Warning: Only 99 paths loaded'
+      endif
+
+c      i = ifeffit('ss2_norm_correction=0.00023')
+      i = ifeffit('s02 = 1')
+
+      do j=1,num_paths
+         if (j.lt.10) then
+            write(ifeffit_arg,'(A,I1,A,I1,A)')'path(index=',j,
+     &                                   ',feff=feff/feff000',j,'.dat,'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I1,A)')'label=path ',j,
+     &                                   ', s02=s02,e0=e0_cor)'
+            i = ifeffit(ifeffit_arg)
+c            write(ifeffit_arg,'(A,I1,A,A)')'path(',j,
+c     &                        ', sigma2=debye(293,max(0,theta))+',
+c     &                        'ss2_norm_correction)'
+            write(ifeffit_arg,'(A,I1,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta)))'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I1,A,I1,A)')'get_path(',j,
+     &                                    ', prefix=path',j,')'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I1,A,I1,A)')'path(',j,
+     &                                   ', delr=alpha*path',j,'_reff)'
+            i = ifeffit(ifeffit_arg)
+         else
+            write(ifeffit_arg,'(A,I2,A,I2,A)')'path(index=',j,
+     &                                   ',feff=feff/feff00',j,'.dat,'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I2,A)')'label=path ',j,
+     &                                   ', s02=s02,e0=e0_cor)'
+            i = ifeffit(ifeffit_arg)
+c            write(ifeffit_arg,'(A,I2,A,A)')'path(',j,
+c     &                        ', sigma2=debye(293,max(0,theta))+',
+c     &                        'ss2_norm_correction)'
+            write(ifeffit_arg,'(A,I2,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta)))'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I2,A,I2,A)')'get_path(',j,
+     &                                    ', prefix=path',j,')'
+            i = ifeffit(ifeffit_arg)
+            write(ifeffit_arg,'(A,I2,A,I2,A)')'path(',j,
+     &                                   ', delr=alpha*path',j,'_reff)'
+            i = ifeffit(ifeffit_arg)
+         end if
+      end do
+
+      return
+      end
+
+@
+
+
+1.12
+log
+@Updated model
+ - no more ss2_norm_correction to sigma2
+@
+text
+@a577 84
+c-------------------------------------------------------
+      subroutine calculate_chi2(windowing)
+      integer windowing
+      real*8 kweight
+      integer i,j
+      real*8 l_arr(5000),l_r
+      integer l_size,l_i
+
+      i = ifeffit('do_kweight(fit)')
+      i = ifeffit('do_kweight(mudata)')
+
+      if(windowing.eq.1) then      
+c       Cut the exp and fit curves to the same range
+        i = ifeffit('set koffset = 1')
+
+        i = ifeffit('mudata_l2.k=
+     &              slice(mudata.k,     1,npts(mudata.k)-koffset)')
+        i = ifeffit('mudata_l2.chik_w=
+     &              slice(mudata.chik_w,1,npts(mudata.chik_w)-koffset)')
+        i = ifeffit('mudata_l2.dchi=
+     &              slice(mudata.dchi,  1,npts(mudata.dchi)-koffset)')
+
+        i = ifeffit('fit_l2.k=
+     &               slice(fit.k,      1+koffset, npts(fit.k))')
+      
+        i = ifeffit('fit_l2.chik_w=
+     &               slice(fit.chik_w, 1+koffset, npts(fit.chik_w))')
+        i = ifeffit('show fit.chik_w')
+c       Find the start and end indcies of the window
+        l_size = iffgetarr('mudata_l2.chik_w',l_arr)
+        l_i = 1 ! before the window
+        do j = 1,l_size 
+           l_r=j
+           if (l_i .eq. 1) then
+              if (l_arr(j) .ne. 0) then
+	         i = iffputsca('min_ind', l_r)
+	         l_i = 2 !now in the window
+  	      endif
+           else if (l_i .eq. 2) then
+              if (l_arr(j) .eq. 0) then 
+  	         i = iffputsca('max_ind', l_r-1)
+	           l_i = 3 !now at the end of the window
+	      endif
+	   endif
+        end do
+
+c       Extract the windowed parts of the exp and fit curves
+        i = ifeffit('mudata_l.k=
+     &               slice(mudata_l2.k,     min_ind,max_ind)')
+        i = ifeffit('mudata_l.chik_w=
+     &               slice(mudata_l2.chik_w,min_ind,max_ind)')
+        i = ifeffit('mudata_l.dchi=
+     &               slice(mudata_l2.dchi,  min_ind,max_ind)')
+
+      else
+        i = ifeffit('mudata_l.k = mudata.k')
+        i = ifeffit('mudata_l.chik_w = mudata.chi')
+        i = ifeffit('mudata_l.dchi = mudata.dchi')
+      end if
+
+      i = ifeffit('mudata_l.kwdchi=
+     &               mudata_l.dchi*(mudata_l.k^kweight)')
+ 
+      i = ifeffit('fit_l.k=mudata_l.k')
+      i = ifeffit('fit_l.chik_w = splint(fit.k,
+     &                         fit.chik_w,fit_l.k)')
+     
+      i = ifeffit('mudata_l.res=mudata_l.chik_w-fit_l.chik_w')
+c      i = ifeffit('norm=1/vsum(1/mudata_l.dchi^2)')
+      i = ifeffit('norm=1/(npts(mudata_l.k)-n_varys)')
+
+      i = ifeffit('nr_chi2 = 
+     & vsum((mudata_l.res/mudata_l.dchi)^2)*norm')
+
+      i = ifeffit('nr_kwchi2 = 
+     & vsum((mudata_l.res/mudata_l.kwdchi)^2)*norm')
+
+      i = ifeffit('mudata_l.res2 = mudata_l.res^2')
+      i = ifeffit('mudata_l.rat = (mudata_l.res/mudata_l.dchi)')      
+
+      i = ifeffit('show norm,nr_chi2,nr_kwchi2')
+      i = ifeffit('show mudata_l.res,mudata_l.dchi')
+
+      end
+@
+
+
+1.11
+log
+@*** empty log message ***
+@
+text
+@d164 2
+a165 2
+      i = ifeffit('guess(alpha=0.0001)')
+      i = ifeffit('guess(theta=350)')
+d296 1
+a296 1
+          i = ifeffit('plot(device="/ps",file="fit_allpaths.ps")')
+d310 1
+a310 1
+          i = ifeffit('plot(device="/ps",file="fit.ps")')
+d354 8
+d399 1
+a399 1
+      i = ifeffit('ss2_norm_correction=0.00023')
+d404 1
+a404 1
+            write(ifeffit_arg,'(A,I1,A)')'guess(s02_',j,'=0.9)'
+d412 5
+a416 3
+            write(ifeffit_arg,'(A,I1,A,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta))+',
+     &                        'ss2_norm_correction)'
+d425 1
+a425 1
+            write(ifeffit_arg,'(A,I2,A)')'guess(s02_',j,'=0.9)'
+d433 5
+a437 3
+            write(ifeffit_arg,'(A,I2,A,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta))+',
+     &                        'ss2_norm_correction)'
+d469 2
+a470 2
+      i = ifeffit('ss2_norm_correction=0.00023')
+      i = ifeffit('guess(s02=0.9)')
+d480 5
+a484 3
+            write(ifeffit_arg,'(A,I1,A,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta))+',
+     &                        'ss2_norm_correction)'
+d499 5
+a503 3
+            write(ifeffit_arg,'(A,I2,A,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta))+',
+     &                        'ss2_norm_correction)'
+d530 1
+a530 1
+      i = ifeffit('ss2_norm_correction=0.00023')
+d541 5
+a545 3
+            write(ifeffit_arg,'(A,I1,A,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta))+',
+     &                        'ss2_norm_correction)'
+d560 5
+a564 3
+            write(ifeffit_arg,'(A,I2,A,A)')'path(',j,
+     &                        ', sigma2=debye(293,max(0,theta))+',
+     &                        'ss2_norm_correction)'
+@
+
+
+1.10
+log
+@Calling feffit2 as well as feffit now
+@
+text
+@d37 1
+d49 1
+a49 1
+      real_chi2=1
+d95 6
+d118 25
+d169 2
+d172 1
+a172 1
+        call load_redu_model(max_num_paths) 
+d215 1
+a215 1
+cccccccc      if (real_chi2.ne.1) then
+a227 2
+        i = ifeffit('write_data(file=out1.dat,$title*,
+     &              fit.k,fit.chi,fit.res,fit.win)')
+d237 16
+a252 1
+cccccccc      else
+d265 1
+a265 3
+        i = ifeffit('write_data(file=out2.dat,$title*,
+     &              fit.k,fit.chi,fit.res,fit.win)')
+ccccccccc      endif
+d277 56
+a332 20
+ccccccccc      if (real_chi2.ne.1) then
+        call calculate_chi2(windowing)
+cccccccc      end if
+
+      if (do_plots.eq.1) then
+c       Plot the result of the paths
+
+c       Let's set the plot xrange:
+        i = ifeffit('xmin_k=0.95*(kmin-dk)')
+        i = ifeffit('xmax_k=1.05*(kmax+dk)')
+
+        i = ifeffit('do_kweight mudata')
+        i = ifeffit('do_kweight fit')
+
+        i = ifeffit('newplot(mudata.k, mudata.chik_w, color=blue,')
+        i = ifeffit('title=\'k\\uk_weight\\d\\gx(k)(windowed) vs k\',')
+        i = ifeffit('ylabel=\'k\\uk_weight\\d\\gx(k)\',xmin=xmin_k,')
+        i = ifeffit('xmax=xmax_k,')
+        i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+        i = ifeffit('plot(fit.k,fit.chik_w, color=red, style=dashed)')
+a333 1
+        i = ifeffit('plot(device="/ps",file="fit_allpaths.ps")')
+d336 16
+a351 17
+        i = ifeffit('newplot(mudata.k,mudata.chi,xmin=0,')
+        i = ifeffit('title=\'\\gx(k) vs k\',')
+        i = ifeffit('xmin=0,xmax=xmax_k+2,ymin=-0.15,ymax=0.15,')
+        i = ifeffit('ylabel=\'\\gx(k)\',')
+        i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+        i = ifeffit('plot(feffit.k, feffit.chi, style=dashed)')
+        i = ifeffit('mudata.kwin2=0.13*mudata.win')
+        i = ifeffit('plot(mudata.k, mudata.kwin2,
+     &                  style=dotted, color=black)')
+
+        i = ifeffit('plot(device="/ps",file="fit_exp_chi.ps")')
+
+
+        i = ifeffit('newplot(mudata_l.k,mudata_l.chik_w,
+     &                     dy=mudata_l.dchi,style=points1)')
+        i = ifeffit('plot(fit_l.k,fit_l.chik_w)')
+        i = ifeffit('plot(mudata_l.k,mudata_l.res)')
+d364 1
+a364 1
+      i = ifeffit('show nr_chi2,nr_kwchi2')
+d503 54
+d627 1
+a627 1
+      i = ifeffit('norm=1/(npts(mudata_l.k)-19)')
+@
+
+
+1.9
+log
+@Fixed.
+Added Comand line processing.
+@
+text
+@a27 1
+
+d34 1
+d48 1
+d179 1
+a179 1
+c-------------Do The Fit
+d181 12
+a192 8
+      if (max_num_paths.lt.10) then
+        write(ifeffit_arg,'(A,I1,A)')'feffit(1-',max_num_paths,
+     &      ', k=mudata.k, chi=mudata.chi,group=fit, restraint=res1)'
+      else
+        write(ifeffit_arg,'(A,I2,A)')'feffit(1-',max_num_paths,
+     &      ', k=mudata.k, chi=mudata.chi,group=fit, restraint=res1)'
+      end if
+      i = ifeffit(ifeffit_arg)
+d194 2
+d197 5
+a201 2
+      if (max_num_paths.lt.10) then
+        write(ifeffit_arg,'(A,I1,A)')'ff2chi(1-',max_num_paths,
+d203 18
+a220 5
+      else
+        write(ifeffit_arg,'(A,I2,A)')'ff2chi(1-',max_num_paths,
+     &              ', group=feffit, kmax=kmax+2)'
+      end if
+      i = ifeffit(ifeffit_arg)
+d224 1
+a224 1
+      i = ifeffit('show @@paths')      
+d231 4
+a234 1
+      call calculate_chi2(windowing)
+@
+
+
+1.8
+log
+@*** empty log message ***
+@
+text
+@d2 1
+a2 1
+c     Wrritten by: Grant Schuster
+a20 1
+
+a21 4
+c     Tell the program where to find the ifeffit library file:
+      include '/home/lucasfs/ifeffit/share/ifeffit/config/ifeffit.inc'
+      call main
+      end
+a22 2
+c---------------------------------------------------------------
+      subroutine main
+d27 8
+a34 1
+      integer debug
+d39 9
+a47 4
+c     Open a file to output the raw and interpolated xmu data
+      open(unit=1,file='xmu_raw_interp.out',status='unknown')
+
+      debug = 1
+a52 3
+      i = ifeffit('&screen_echo=0')
+
+
+d57 2
+a62 1
+      kweight=1.0d0
+d64 6
+d71 42
+a112 4
+      if (n_args.eq.1) then
+        call getarg(1,arg1)
+        read(arg1,*) kweight
+      endif
+d114 4
+a117 1
+      call define_macros
+d123 3
+a125 2
+      write(*,*)'- Welcome to Lucas\' XAFS Analysis Tool, built  -'
+      write(*,*)'- on top of IFEFFIT and utilizing FEFF8.2.       -'
+a127 9
+ 
+
+c     Read in Moly XAFS data
+      i = ifeffit('read_data(file=chi_v_k.dat,group=mudata)')
+      
+
+      call print_echo
+
+
+a128 5
+      write(*,*)'Let\'s set the number of paths'
+
+c     Set the initial values of the amplitude reduction factor s02, 
+c     debye-waller factors ss2_xx (xx is path number),
+c     e0_cor (E0 correction) and delr and tell the user
+a129 1
+c      i = ifeffit('e0_cor=0.0')
+d134 5
+a138 8
+c      write(*,*)'Initial guesses:'
+c      write(*,*)'E0_correction e0_cor=0.0,'
+c      write(*,*)'delta R delr=alpha*reff, where alpha is the coeff'
+c      write(*,*)'of thermal expansion for the material and reff'
+c      write(*,*)'is the effective half path length for the path'
+c      write(*,*)'alpha=0.001 is the initial guess'
+c      write(*,*)'The Debye Temperature to calculate DW factors has'
+c      write(*,*)'been guessed to be 350.'
+d140 1
+d142 7
+a148 4
+
+      max_num_paths=16
+
+      call load_paths(max_num_paths)
+d152 1
+a152 4
+
+
+
+c--------------------------------------------
+d156 1
+a156 2
+
+      write(*,*)'kweight has been set to:',kweight
+a157 1
+      i = ifeffit('i_kweight=kweight')
+d159 2
+a160 3
+
+      i = iffputsca('i_kmin',kmin)
+      i = ifeffit('set(kmin=i_kmin)')
+d162 1
+a162 3
+
+      i = iffputsca('i_kmax',kmax)
+      i = ifeffit('set(kmax=i_kmax)')
+d164 1
+a164 3
+
+      i = iffputsca('i_dk',dk)
+      i = ifeffit('set(dk=i_dk)')
+d166 22
+d189 7
+a195 42
+      i = ifeffit('xmin_k=0.95*(i_kmin-i_dk)')
+      i = ifeffit('xmax_k=1.05*(i_kmax+i_dk)')
+
+
+c     Plot the windowed k-weighted k space data with the 
+c     chosen parameters
+
+
+      i = ifeffit('window(k=mudata.k,
+     &                 kmin=kmin,kmax=kmax,dk=dk,
+     &                 kweight=kweight,kwindow=\'hanning\')')
+
+
+      i = ifeffit('set mudata.chik = mudata.chi * mudata.k^kweight')
+      i = ifeffit('set mudata.chik_w = mudata.chik * mudata.win')
+
+      if (debug==1) then
+c        Plot the results of the background removal
+         write(*,*)'Plotting chi vs k'
+         i = ifeffit('newplot(mudata.k, mudata.chi, style=solid,')
+         i = ifeffit('title=\' \\gx(k) vs k\',ylabel=\'\\gx(k)\',')
+         i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \')')
+         i = ifeffit('show mudata.k')
+         write(*,*)'This plot has been saved as'
+         write(*,*)'\'chi_vs_k_expt.ps\'.'
+         i = ifeffit('plot(device="/ps",file="chi_vs_k_expt.ps")')
+
+
+         i = ifeffit('newplot(mudata.k, mudata.chik_w, color=blue,')
+         i = ifeffit('title=\'k\\u3\\d\\gx(k)(windowed) vs k\',')
+         i = ifeffit('ylabel=\'k\\u3\\d\\gx(k)\',xmin=xmin_k,')
+         i = ifeffit('xmax=xmax_k,')
+         i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+c        also plot the window function-dotted
+      i = ifeffit('mudata.kwina=mudata.win*(ceil(mudata.chik_w)*1.05)')
+         i = ifeffit('plot(mudata.k,mudata.kwina, 
+     &                     style=dotted, color=black)')
+
+c        Save this plot
+         write(*,*)'This plot has been saved as'
+         write(*,*)'\'win_kweight_chi.ps\'.'
+         i = ifeffit('plot(device="/ps",file="win_kweight_chi.ps")')
+d197 1
+a198 1
+      call print_echo
+a199 2
+c --------------------------------------------------------------------
+      write(*,*)'-------------------\nLet\'s play with FEFFIT'
+d201 6
+a206 3
+c     Include background refinement in the ifeffit fitting
+c      i = ifeffit('do_bkg=true')
+      i = ifeffit('do_bkg=false')
+d208 1
+d210 2
+d213 26
+a238 6
+      write(*,*)''
+      write(*,*)'!----------------------------------------!'
+      write(*,*)'!We do a full fit with ALL the paths.    !'
+      write(*,*)'!This will take about a minute.          !'
+      write(*,*)'!----------------------------------------!'
+      write(*,*)''
+d240 1
+a240 2
+      i = ifeffit('feffit(1-16, k=mudata.k, chi=mudata.chi, 
+     &                    group=fit)')
+a241 8
+      i = ifeffit('show @@path=16')
+      i = ifeffit('show @@variables')
+      i = ifeffit('correl(@@all,@@all,print)')
+      write(*,*)'fit parameters printing:'
+      i = ifeffit('show chi_square, chi_reduced, r_factor')
+      i = ifeffit('show epsilon_k, epsilon_r, n_idp, n_varys')
+      i = ifeffit('show &fit_iteration')
+      call print_echo
+d243 5
+a247 31
+c     Plot the result of the paths
+      write(*,*)'Plotting the fit and exp data'
+      write(*,*)'Expt=blue, fit=red'
+      write(*,*)'Plotting the windowed fit in k space'
+      i = ifeffit('plotkspace fit')
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'fit_allpaths.ps\'.'
+      i = ifeffit('plot(device="/ps",file="fit_allpaths.ps")')
+      call print_echo
+
+
+      write(*,*)'Calculating theoretical curve....'
+      i = ifeffit('ff2chi(1-16, group=feffit)')
+      call print_echo
+
+c     Plot the theoretical fitted data
+      write(*,*)'Plotting theoretical(dashed) and' 
+      write(*,*)'exp(solid) chi(k) vs k'
+      i = ifeffit('newplot(mudata.k,mudata.chi,xmin=0,')
+      i = ifeffit('title=\'\\gx(k) vs k\',')
+      i = ifeffit('xmin=0,xmax=15,ymin=-0.15,ymax=0.15,')
+      i = ifeffit('ylabel=\'\\gx(k)\',')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+      i = ifeffit('plot(feffit.k, feffit.chi, style=dashed)')
+      i = ifeffit('mudata.kwin2=0.13*mudata.win')
+      i = ifeffit('plot(mudata.k, mudata.kwin2,
+     &                  style=dotted, color=black)')
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'fit_exp_chi.ps\'.'
+      i = ifeffit('plot(device="/ps",file="fit_exp_chi.ps")')
+      call print_echo
+d249 1
+a250 2
+      call calculate_chi2
+ 
+d254 8
+a261 1
+      i = ifeffit('show @@all')
+a264 3
+      i = ifeffit('history(off)')
+      close(unit=1)
+      call print_echo
+d266 1
+a268 13
+c -------------------------------------------------------------------
+      subroutine print_echo
+      integer i,j, num_buffer
+      double precision x_num_buffer
+      character*128 x_text(64)
+
+      i = iffgetsca('&echo_lines',x_num_buffer)
+      num_buffer = min(64,int(x_num_buffer))
+      write(*,*)'echo buffer=',num_buffer
+      do 1010 j = 1, num_buffer
+         i = iffgetecho(x_text(j))
+         write(*,*)'echo line ', j ,' = ', x_text(j)(1:i)
+ 1010 continue
+a269 2
+      return
+      end
+d272 2
+a273 23
+c -------------------------------------------------------------------
+      subroutine define_macros
+      integer i
+      write(*,*)'Lodaing Macros....'
+      i = ifeffit('macro do_kweight')
+      i = ifeffit('print "hello form do_kwight"')
+      i = ifeffit('set $1.chik = $1.chi * $1.k^kweight')
+      i = ifeffit('set $1.chik_w = $1.chik * $1.win')
+      i = ifeffit('end macro')
+c     Create a macro to plot the data in k space
+c     The first variable will be the array (e.g. fit1,fit2)
+      i = ifeffit('macro plotkspace')
+      i = ifeffit('do_kweight mudata')
+      i = ifeffit('do_kweight $1')
+      i = ifeffit('newplot(mudata.k, mudata.chik_w, color=blue,')
+      i = ifeffit('title=\'k\\uk_weight\\d\\gx(k)(windowed) vs k\',')
+      i = ifeffit('ylabel=\'k\\uk_weight\\d\\gx(k)\',xmin=xmin_k,')
+      i = ifeffit('xmax=xmax_k,')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+      i = ifeffit('plot($1.k,$1.chik_w, color=red, style=dashed)')
+      i = ifeffit('end macro')
+      return
+      end
+d276 1
+a276 1
+      subroutine load_paths(num_paths)
+d287 2
+d331 61
+a391 1
+      call print_echo
+d397 2
+d400 2
+a401 1
+      subroutine calculate_chi2
+d407 2
+d410 3
+a412 2
+c     Cut the exp and fit curves to the same range
+      i = ifeffit('set koffset = 1')
+d414 1
+a414 1
+      i = ifeffit('mudata_l2.k=
+d416 1
+a416 1
+      i = ifeffit('mudata_l2.chik_w=
+d418 1
+a418 1
+      i = ifeffit('mudata_l2.dchi=
+d421 1
+a421 2
+
+      i = ifeffit('fit_l2.k=
+d423 2
+a424 1
+      i = ifeffit('fit_l2.chik_w=
+d426 26
+d453 5
+d459 3
+a461 28
+c     Find the start and end indcies of the window
+      l_size = iffgetarr('mudata_l2.chik_w',l_arr)
+      l_i = 1 ! before the window
+      do j = 1,l_size 
+         l_r=j
+         if (l_i .eq. 1) then
+            if (l_arr(j) .ne. 0) then
+	       i = iffputsca('min_ind', l_r)
+	       l_i = 2 !now in the window
+	    endif
+         else if (l_i .eq. 2) then
+            if (l_arr(j) .eq. 0) then
+	       i = iffputsca('max_ind', l_r-1)
+	       l_i = 3 !now at the end of the window
+	    endif
+	 endif
+      end do
+      i = ifeffit('show min_ind, max_ind')
+      
+
+c     Extract the windowed parts of the exp and fit curves
+      i = ifeffit('mudata_l.k=
+     &               slice(mudata_l2.k,min_ind,max_ind)')
+      i = ifeffit('mudata_l.chik_w=
+     &               slice(mudata_l2.chik_w,min_ind,max_ind)')
+      i = ifeffit('mudata_l.dchi=
+     &               slice(mudata_l2.dchi,min_ind,max_ind)')
+
+d465 1
+a465 3
+
+
+      
+d473 3
+a477 2
+      i = ifeffit('write_data(file=out.txt,$title*,mudata_l.k,
+     &   mudata_l.res,mudata_l.dchi)')
+d479 1
+a479 1
+      i = ifeffit('show norm,nr_chi2')
+a481 5
+      i = ifeffit('newplot(mudata_l.k,mudata_l.chik_w,
+     &                     dy=mudata_l.dchi,style=points1)')
+      i = ifeffit('plot(fit_l.k,fit_l.chik_w)')
+      i = ifeffit('plot(mudata_l.k,mudata_l.res)')
+
+@
+
+
+1.7
+log
+@*** empty log message ***
+@
+text
+@d50 3
+d256 1
+@
+
+
+1.6
+log
+@*** empty log message ***
+@
+text
+@d21 1
+d23 8
+a30 3
+      integer i
+      integer ma
+      parameter (ma=4)
+a31 1
+      real*8 e0
+a33 3
+
+      real*8 l_arr(5000),l_r
+      integer l_size,l_i,l_j
+d35 3
+a37 6
+            
+      character*128 xmu, read_data, x_text(64), j_str, rubbish, temp
+
+
+c     Tell the program where to find the ifeffit library file:
+      include '/home/lucasfs/ifeffit/share/ifeffit/config/ifeffit.inc'
+d42 1
+a51 3
+
+      e0=2.0008d4
+
+a55 1
+
+d58 5
+a62 2
+
+c ----- IFEFFIT MACROS:
+d70 1
+a70 1
+      write(*,*)'- Welcome to Grant\'s XAFS Analysis Tool, built  -'
+d74 1
+a74 1
+      write(*,*)'Let\'s read in the data'
+d76 2
+a77 12
+c     Make the user aware of the required location for the xafs mass 
+c     attenuation coefficients as a function of energy data.  
+c     The data needs to be in columns of energy in EV first and 
+c     then coefficients second.
+      write(*,*)'Make sure the file with energies in EV and'
+      write(*,*)'attenuation coefficients is in /data/xxx.dat where'
+      write(*,*)'xxx==cu,mo,znse,ag,si or zn \n'
+c      write(*,*)'You can also include an error in the atten coefs'
+c      write(*,*)'in the third column.'
+
+c     Read in Moly data
+      i = ifeffit('ss2_norm_correction=0.00023')
+d95 9
+a103 16
+      write(*,*)'Initial guesses:'
+      write(*,*)'E0_correction e0_cor=0.0,'
+      write(*,*)'delta R delr=alpha*reff, where alpha is the coeff'
+      write(*,*)'of thermal expansion for the material and reff'
+      write(*,*)'is the effective half path length for the path'
+      write(*,*)'alpha=0.001 is the initial guess'
+      write(*,*)'The Debye Temperature to calculate DW factors has'
+      write(*,*)'been guessed to be 350.'
+
+c     Using these intial values read in the paths.
+c     Inform the user that the paths must be as obtained from FEFF by setting
+c     print to 0 0 0 0 0 3 (as a minimum) and the feffxxxx.dat files in the
+c     folder ./feff/
+      write(*,*)'\n Ensure the paths were obtained from FEFF by'
+      write(*,*)'setting PRINT to 0 0 0 0 0 3 (as a minimum)' 
+      write(*,*)'and that the feffxxxx.dat files are in ./feff/'
+a105 1
+      write(*,*)'You are fitting 16 paths.' 
+d108 1
+a108 157
+c     Let's set the sigma2 variable better.  sigma2=CDM calculated
+c     factor with a variable theta (the debye temp)+normalisation
+c     correction
+c     I have added a maximum function in the debye function to ensure
+c     the temperature doesn't go below 0.  This seemed to be a problem
+c     when trying 0 kweighting.
+
+c     Let's set delr to be the coefficient of thermal expansion, alpha,
+c     times the effective path length reff for the path
+
+
+      if (max_num_paths >= 1) then
+         i = ifeffit('guess(s02_1=0.9)')
+         i = ifeffit('path(index=1,feff=feff/feff0001.dat,')
+         i = ifeffit('label=path 1, s02=s02_1,e0=e0_cor)')
+         i = ifeffit('path(1, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(1, prefix=path1)')
+         i = ifeffit('path(1, delr=alpha*path1_reff)')
+      end if
+      if (max_num_paths >= 2) then
+         i = ifeffit('guess(s02_2=0.9)')
+         i = ifeffit('path(index=2,feff=feff/feff0002.dat,')
+         i = ifeffit('label=path 2, s02=s02_2,e0=e0_cor)')
+         i = ifeffit('path(2, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(2, prefix=path2)')
+         i = ifeffit('path(2, delr=alpha*path2_reff)')
+      end if
+      if (max_num_paths >= 3) then
+         i = ifeffit('guess(s02_3=0.9)')
+         i = ifeffit('path(index=3,feff=feff/feff0003.dat,')
+         i = ifeffit('label=path 3, s02=s02_3,e0=e0_cor)')
+         i = ifeffit('path(3, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(3, prefix=path3)')
+         i = ifeffit('path(3, delr=alpha*path3_reff)')
+      end if
+      if (max_num_paths >= 4) then
+         i = ifeffit('guess(s02_4=0.9)')
+         i = ifeffit('path(index=4,feff=feff/feff0004.dat,')
+         i = ifeffit('label=path 4, s02=s02_4,e0=e0_cor)')
+         i = ifeffit('path(4, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(4, prefix=path4)')
+         i = ifeffit('path(4, delr=alpha*path4_reff)')
+      end if
+      if (max_num_paths >= 5) then
+         i = ifeffit('guess(s02_5=0.9)')
+         i = ifeffit('path(index=5,feff=feff/feff0005.dat,')
+         i = ifeffit('label=path 5, s02=s02_5,e0=e0_cor)')
+         i = ifeffit('path(5, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(5, prefix=path5)')
+         i = ifeffit('path(5, delr=alpha*path5_reff)')
+      end if
+      if (max_num_paths >= 6) then
+         i = ifeffit('guess(s02_6=0.9)')
+         i = ifeffit('path(index=6,feff=feff/feff0006.dat,')
+         i = ifeffit('label=path 6, s02=s02_6,e0=e0_cor)')
+         i = ifeffit('path(6, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(6, prefix=path6)')
+         i = ifeffit('path(6, delr=alpha*path6_reff)')
+      end if
+      if (max_num_paths >= 7) then
+         i = ifeffit('guess(s02_7=0.9)')
+         i = ifeffit('path(index=7,feff=feff/feff0007.dat,')
+         i = ifeffit('label=path 7, s02=s02_7,e0=e0_cor)')
+         i = ifeffit('path(7, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(7, prefix=path7)')
+         i = ifeffit('path(7, delr=alpha*path7_reff)')
+      end if
+      if (max_num_paths >= 8) then
+         i = ifeffit('guess(s02_8=0.9)')
+         i = ifeffit('path(index=8,feff=feff/feff0008.dat,')
+         i = ifeffit('label=path 8, s02=s02_8,e0=e0_cor)')
+         i = ifeffit('path(8, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(8, prefix=path8)')
+         i = ifeffit('path(8, delr=alpha*path8_reff)')
+      end if
+      if (max_num_paths >= 9) then
+         i = ifeffit('guess(s02_9=0.9)')
+         i = ifeffit('path(index=9,feff=feff/feff0009.dat,')
+         i = ifeffit('label=path 9, s02=s02_9,e0=e0_cor)')
+         i = ifeffit('path(9, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(9, prefix=path9)')
+         i = ifeffit('path(9, delr=alpha*path9_reff)')
+      end if
+      if (max_num_paths >= 10) then
+         i = ifeffit('guess(s02_10=0.9)')
+         i = ifeffit('path(index=10,feff=feff/feff0010.dat,')
+         i = ifeffit('label=path 10, s02=s02_10,e0=e0_cor)')
+         i = ifeffit('path(10, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(10, prefix=path10)')
+         i = ifeffit('path(10, delr=alpha*path10_reff)')
+      end if
+      if (max_num_paths >= 11) then
+         i = ifeffit('guess(s02_11=0.9)')
+         i = ifeffit('path(index=11,feff=feff/feff0011.dat,')
+         i = ifeffit('label=path 11, s02=s02_11,e0=e0_cor)')
+         i = ifeffit('path(11, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(11, prefix=path11)')
+         i = ifeffit('path(11, delr=alpha*path11_reff)')
+      end if
+      if (max_num_paths >= 12) then
+         i = ifeffit('guess(s02_12=0.9)')
+         i = ifeffit('path(index=12,feff=feff/feff0012.dat,')
+         i = ifeffit('label=path 12, s02=s02_12,e0=e0_cor)')
+         i = ifeffit('path(12, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(12, prefix=path12)')
+         i = ifeffit('path(12, delr=alpha*path12_reff)')
+      end if
+      if (max_num_paths >= 13) then
+         i = ifeffit('guess(s02_13=0.9)')
+         i = ifeffit('path(index=13,feff=feff/feff0013.dat,')
+         i = ifeffit('label=path 13, s02=s02_13,e0=e0_cor)')
+         i = ifeffit('path(13, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(13, prefix=path13)')
+         i = ifeffit('path(13, delr=alpha*path13_reff)')
+      end if
+      if (max_num_paths >= 14) then
+         i = ifeffit('guess(s02_14=0.9)')
+         i = ifeffit('path(index=14,feff=feff/feff0014.dat,')
+         i = ifeffit('label=path 14, s02=s02_14,e0=e0_cor)')
+         i = ifeffit('path(14, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(14, prefix=path14)')
+         i = ifeffit('path(14, delr=alpha*path14_reff)')
+      end if
+      if (max_num_paths >= 15) then
+         i = ifeffit('guess(s02_15=0.9)')
+         i = ifeffit('path(index=15,feff=feff/feff0015.dat,')
+         i = ifeffit('label=path 15, s02=s02_15,e0=e0_cor)')
+         i = ifeffit('path(15, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(15, prefix=path15)')
+         i = ifeffit('path(15, delr=alpha*path15_reff)')
+      end if
+      if (max_num_paths >= 16) then
+         i = ifeffit('guess(s02_16=0.9)')
+         i = ifeffit('path(index=16,feff=feff/feff0016.dat,')
+         i = ifeffit('label=path 16, s02=s02_16,e0=e0_cor)')
+         i = ifeffit('path(16, sigma2=debye(293,max(0,theta))+
+     &        ss2_norm_correction)')
+         i = ifeffit('get_path(16, prefix=path16)')
+         i = ifeffit('path(16, delr=alpha*path16_reff)')
+      end if
+      call print_echo
+
+a115 9
+c     START KWIEGHT LOOP
+c--------------------------------------------
+
+c--------------------------------------------------------------------
+
+c     Now we are going to run through this for k=1,2 and 3
+c     and get chi, chir, phase, r_peak, amplitude data for each
+c     one.  Then we will calculate errors and plot them.
+
+a119 4
+      i = ifeffit('read_data(file=chi_v_k.dat,group=mudata)')
+
+
+
+d123 1
+a123 17
+
+      if (debug==1) then
+
+c        Plot the results of the background removal
+         write(*,*)'Plotting chi vs k'
+         i = ifeffit('newplot(mudata.k, mudata.chi, style=solid,')
+         i = ifeffit('title=\' \\gx(k) vs k\',ylabel=\'\\gx(k)\',')
+         i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \')')
+
+         i = ifeffit('show mudata.k')
+c        Save this plot
+         write(*,*)'This plot has been saved as'
+         write(*,*)'\'chi_vs_k_expt.ps\'.'
+         i = ifeffit('plot(device="/ps",file="chi_vs_k_expt.ps")')
+         call print_echo      
+
+      end if 
+d140 1
+d143 2
+d146 2
+a147 2
+     &         kmin=kmin,kmax=kmax,dk=dk,
+     &         kweight=1,kwindow=\'hanning\')')
+d149 3
+a151 1
+      i = ifeffit('do_kweight mudata')
+d154 11
+d179 1
+a179 1
+         call print_echo
+d181 1
+a182 3
+      end if ! back to doing for each loop
+
+      call print_echo
+a185 18
+
+
+
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+
+c     Now we have a bunch of constants set.  I may want to make it so they can
+c     be varied, but that can wait.  Now we should try using the final part
+c     of FEFF, namely ff2chi.  Using the definitions of the paths from
+c     before we can calculate the theoretical chi(k)- feff.k and feff.chi
+
+      write(*,*)'Using ff2chi to calculate the theoretical chi(k)'
+
+      
+c      i = ifeffit('ff2chi(1-16, group=feff)')
+
+      call print_echo
+
+a198 2
+
+
+a215 3
+      call print_echo
+
+c     Save this plot
+a220 10
+c --------------------------------------------------------------------
+c      write(*,*)'Let\'s get the amplitude'
+c      write(*,*)'and phase of the EXAFS signals.  Then we will'
+c      write(*,*)'determine the interatomic distance.'
+
+      write(*,*)'We now have the theoretical and experimental data'
+      write(*,*)'Let\'s calculate the theoretical k space chi using'
+      write(*,*)'ff2chi which we will use to determine the amplitude'
+      write(*,*)'and phase of the 1st shell peak'
+
+d222 1
+a223 2
+
+
+a233 1
+
+a235 1
+
+a237 2
+
+c     Save this plot
+d244 1
+d246 123
+d370 1
+a370 1
+          
+d372 1
+a372 1
+     &               slice(mudata.k,1,npts(mudata.k)-koffset)')
+d376 1
+a376 1
+     &               slice(mudata.dchi,1,npts(mudata.dchi)-koffset)')
+d380 1
+a380 1
+     &               slice(fit.k,1+koffset,npts(fit.k))')
+d382 1
+a382 1
+     &               slice(fit.chik_w,1+koffset,npts(fit.chik_w))')
+d385 5
+a389 5
+c      l_size = iffgetarr('mudata_l2.dchi',l_arr)       
+      l_size = iffgetarr('mudata_l2.chik_w',l_arr)     
+      l_i = 1
+      do i = 1,l_size 
+         l_r=i
+d391 3
+a393 3
+            if (l_arr(i) .ne. 0) then
+	       l_j = iffputsca('min_ind', l_r)
+	       l_i = 2
+d396 3
+a398 3
+            if (l_arr(i) .eq. 0) then
+	       l_j = iffputsca('max_ind', l_r-1)
+	       l_i = 3
+d405 1
+a405 1
+
+a438 53
+c --------------------------------------------------------------------
+
+      i = ifeffit('log(file=variables.out)')
+      i = ifeffit('&screen_echo=2')
+      i = ifeffit('show @@all')
+      i = ifeffit('log(close)')
+      i = ifeffit('&screen_echo=0')
+
+      close(unit=1)
+      call print_echo
+
+      end
+
+c -------------------------------------------------------------------
+      subroutine print_echo
+      integer i,j, num_buffer
+      double precision x_num_buffer
+      character*128 x_text(64)
+
+      i = iffgetsca('&echo_lines',x_num_buffer)
+      num_buffer = min(64,int(x_num_buffer))
+      write(*,*)'echo buffer=',num_buffer
+      do 1010 j = 1, num_buffer
+         i = iffgetecho(x_text(j))
+         write(*,*)'echo line ', j ,' = ', x_text(j)(1:i)
+ 1010 continue
+
+      return
+      end
+
+
+c -------------------------------------------------------------------
+      subroutine define_macros
+      integer i
+
+      i = ifeffit('macro do_kweight')
+      i = ifeffit('set $1.chik = $1.chi * $1.k^kweight')
+      i = ifeffit('set $1.chik_w = $1.chik * $1.win')
+      i = ifeffit('end macro')
+c     Create a macro to plot the data in k space
+c     The first variable will be the array (e.g. fit1,fit2)
+      i = ifeffit('macro plotkspace')
+      i = ifeffit('do_kweight mudata')
+      i = ifeffit('do_kweight $1')
+      i = ifeffit('newplot(mudata.k, mudata.chik_w, color=blue,')
+      i = ifeffit('title=\'k\\uk_weight\\d\\gx(k)(windowed) vs k\',')
+      i = ifeffit('ylabel=\'k\\uk_weight\\d\\gx(k)\',xmin=xmin_k,')
+      i = ifeffit('xmax=xmax_k,')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+      i = ifeffit('plot($1.k,$1.chik_w, color=red, style=dashed)')
+      i = ifeffit('end macro')
+
+      return
+@
+
+
+1.5
+log
+@*** empty log message ***
+@
+text
+@d22 2
+a23 5
+      integer i, num_buffer, j, menu_selection, reporting, k
+      integer m, n, p, q, run_num, first_energy, i_int, i_unint
+      integer num_e_runs, rlength, klength, qlength,n_int
+      integer mp,np,ma, i_int_low,n_repeat,i_int_high
+      integer ncvm,kpoints,kpoints_int,n_fit_pts
+d25 4
+a28 59
+      parameter (num_e_runs=3,n_fit_pts=4,n_repeat=1)
+      integer sample, num_paths, max_num_paths
+      integer user_nknots, fit_space, plot_space
+      integer newplot_type, plot_type,pleft
+      integer saving, loading, ps_selection, error_check
+      real*8 fitcoeffs(ma)       !cubic fit as ma=4
+      real*8 u(n_fit_pts,n_fit_pts),v(n_fit_pts,n_fit_pts)
+      real*8 w(n_fit_pts),intchisq
+      real*8 cvm(ma,ma)
+      real*8 e0,x_num_buffer,kmin,kmax,rmin,rmax,dk, nknots
+      real*8 kmin_user, kmax_user, rmin_user, rmax_user, dk_user
+      real*8 kweight, kweight_user, dr, dr_user, max_indpt
+      real*8 PI, max_amp, max, n_max, rbkg, user_rbkg, r_peak
+      real*8 pre2, user_pre2, pre1, user_pre1, edge_step
+      real*8 r_peak_exp, r_peak_th, e0_initial, ref_e0
+      real*8 energy_run_step, ap_rmin, ap_rmax, ap_dr
+      real*8 e0_final, new_error,wt,sx,sum_wt
+      real*8 ave_e0_final,ave_r_peak_exp,ave_r_peak_th
+      real*8 ave_theta,ave_alpha,de0_final,dr_peak_exp
+      real*8 dr_peak_th,dtheta,dalpha, max_chir, int_length
+      real*8 a,b,c,d,da,db,dc,dd !coeffs of fit
+
+c     Let's make some arrays to use in amplitude and phase calcs
+      real*8 mag_z(1000), phase_z(1000), amp_chi(1000), phase_chi(1000)
+      real*8 amp(1000), amp_n(1000), xmu_array(1000), bkg_array(1000)
+      real*8 chi_orig(1000), k_orig(1000), energy_array(1000)
+      real*8 mu_r(1000), q_array(1000), phase_e(1000)
+      real*8 mu_ampk(1000),mu_amp(1000),mu_q(1000)
+      real*8 mu_realchiq(1000),mu_chiq(1000)
+      real*8 ave_chi_exp(1000), ave_chi_th(1000)
+      real*8 ave_chir_exp(1000), ave_chir_th(1000)
+      real*8 dchi_exp(1000), dchi_th(1000)
+      real*8 dchir_exp(1000), dchir_th(1000)
+      real*8 minchir_exp(1000),maxchir_exp(1000)
+      real*8 minchir_th(1000),maxchir_th(1000)
+      real*8 minchi_exp(1000),maxchi_exp(1000)
+      real*8 minchi_th(1000),maxchi_th(1000)
+      real*8 my_chie(1000),my_energy(1000),my_chik(1000),my_k(1000)
+      real*8 my_pre(1000),my_bkg(1000),old_chik(1000)
+      real*8 tmp2(1000)
+c     Interpolation arrays
+      real*8 my_dchik(1000),reldxmu(1000)
+      real*8 interp_k(5000),interp_chi(5000),interp_dchi(5000)
+      real*8 interp_chitmp(n_fit_pts-1,5000)
+      real*8 interp_dchitmp(n_fit_pts-1,5000)
+      real*8 x_int(n_fit_pts),y_int(n_fit_pts),dy_int(n_fit_pts)
+c     Some new arrays for the different e0 values
+      real*8 chi_exp2(num_e_runs,1000),k2(num_e_runs,1000)
+      real*8 chi_th2(num_e_runs,1000)
+      real*8 bkg2(num_e_runs,1000)
+      real*8 r2(num_e_runs,1000)
+      real*8 e02(num_e_runs),r_peak_exp2(num_e_runs)
+      real*8 alpha2(num_e_runs),theta2(num_e_runs)
+      real*8 tmp(1000), r_peak_th2(num_e_runs)
+      real*8 chiq_exp2(num_e_runs,1000), chiq_th2(num_e_runs,1000)
+      real*8 chir_th2(num_e_runs,1000), chir_exp2(num_e_runs,1000)
+      real*8 kwindow2(num_e_runs,1000), rwindow2(num_e_runs,1000)
+      real*8 aprwin2(num_e_runs,1000), e0_cor2(num_e_runs)
+      real*8 q2(num_e_runs,1000)
+d35 1
+a35 1
+      external funcs
+a41 4
+  
+c     Initialise the menu_selection so it doesn't quit on the first
+c     iteration
+      menu_selection=1
+d52 1
+a52 2
+      nknots=7
+      rbkg=1.2d0
+a58 3
+      rmin=1.6d0
+      rmax=5.3d0
+      dr=3.d-1
+a61 3
+      ap_dr=2.d-1
+      ap_rmin=1.9d0
+      ap_rmax=2.7d0
+d65 1
+a66 19
+      i = ifeffit('macro do_kweight')
+      i = ifeffit('set $1.chik = $1.chi * $1.k^kweight')
+      i = ifeffit('set $1.chik_w = $1.chik * $1.win')
+      i = ifeffit('end macro')
+
+
+
+c     Create a macro to plot the data in k space
+c     The first variable will be the array (e.g. fit1,fit2)
+      i = ifeffit('macro plotkspace')
+      i = ifeffit('do_kweight mudata')
+      i = ifeffit('do_kweight $1')
+      i = ifeffit('newplot(mudata.k, mudata.chik_w, color=blue,')
+      i = ifeffit('title=\'k\\uk_weight\\d\\gx(k)(windowed) vs k\',')
+      i = ifeffit('ylabel=\'k\\uk_weight\\d\\gx(k)\',xmin=xmin_k,')
+      i = ifeffit('xmax=xmax_k,')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+      i = ifeffit('plot($1.k,$1.chik_w, color=red, style=dashed)')
+      i = ifeffit('end macro')
+a542 3
+      call print_echo
+
+
+a553 2
+ 1000 continue
+
+a555 9
+
+
+
+
+
+
+
+
+
+d572 4
+a575 49
+c --------------------------------------------------------------------
+c     Based on Numerical Recipes in Fortran:
+c     Solution by Use of Singular Value Decomposition
+      subroutine svdfit(x,y,ndata,sig,a,ma,u,v,w,mp,np,chisq,funcs)
+      integer ma,mp,ndata,np,NMAX,MMAX
+      real*8 chisq,a(ma),u(mp,np),v(np,np),w(np)
+      real*8 sig(ndata),x(ndata),y(ndata),TOL
+      external funcs
+      parameter (NMAX=1000,MMAX=50,TOL=1.e-5) !Max expected ndata and ma
+      integer i,j
+c     This subroutine uses svbksb,svdcmp
+      real*8 sum,thresh,tmp,wmax,afunc(MMAX),b(NMAX)
+c     Accumulate coefficients of the fitting matrix:
+      do 1012 i=1,ndata     
+         call funcs(x(i),afunc,ma)
+         tmp=1./sig(i)
+         do 1011 j=1,ma
+            u(i,j)=afunc(j)*tmp
+ 1011      continue
+         b(i)=y(i)*tmp
+ 1012   continue
+      call svdcmp(u,ndata,ma,mp,np,w,v)
+      wmax=0.
+      do 1013 j=1,ma
+         if(w(j).GT.wmax)wmax=w(j)
+ 1013   continue
+      thresh=TOL*wmax
+      do 1014 j=1,ma
+         if(w(j).LT.thresh)w(j)=0
+ 1014   continue
+      call svbksb(u,w,v,ndata,ma,mp,np,b,a)
+      chisq=0.
+      do 1016 i=1,ndata
+         call funcs(x(i),afunc,ma)
+         sum=0.
+         do 1015 j=1,ma
+            sum=sum+a(j)*afunc(j)
+ 1015      continue
+         chisq=chisq+((y(i)-sum)/sig(i))**2
+ 1016   continue
+      return
+      END
+c --------------------------------
+c     The user defined funcs(x,afunc,ma) that returns the ma basis
+c     functions evaluated at x=x in the array afunc.
+c --------------------------------
+      subroutine funcs(x,afunc,ma)
+      integer ma
+      real*8 x, afunc(ma)
+d578 17
+a594 3
+      do 1021 i=1,ma
+         afunc(i)=x**(ma-i)
+ 1021   continue
+d596 1
+a596 305
+      END
+c -----------------------------------
+c     The Numerical Recipes for Fortran subroutine: svbksb
+      subroutine svbksb(u,w,v,m,n,mp,np,b,x)
+      integer m,mp,n,np,NMAX
+      real*8 b(mp),u(mp,np),v(np,np),w(np),x(np)
+      parameter (NMAX=500) !maximum anticipated n value
+      integer i,j,jj
+      real*8 s,tmp(NMAX)
+      do 1032 j=1,n !calculate U^T.B
+         s=0.
+         if (w(j).NE.0.) then !nonzero result only if w_j is nonzero
+            do 1031 i=1,m
+               s=s+u(i,j)*b(i)
+ 1031       continue
+            s=s/w(j) !this is the divide by w_j
+         endif
+         tmp(j)=s
+ 1032 continue
+      do 1034 j=1,n !matrix multiply by V to get answer
+         s=0.
+         do 1033 jj=1,n
+            s=s+v(j,jj)*tmp(jj)
+ 1033    continue
+         x(j)=s
+ 1034 continue
+      return
+      END
+c -----------------------------------
+c     The Numerical Recipes for Fortran subroutine: svdcmp
+      SUBROUTINE svdcmp(a,m,n,mp,np,w,v)
+      INTEGER m,mp,n,np,NMAX
+      REAL*8 a(mp,np),v(np,np),w(np)
+      PARAMETER (NMAX=500) ! Maximum anticipated value of n
+C     USES pythag
+c      Given a matrix a(1:m,1:n),with physical dimensions 
+c     mp by np this routine computes its
+c      singular value decomposition,A = U · W · V T .
+c     The matrix U replaces a on output.The
+c     diagonal matrix of singular alues W is output as a
+c     vector w(1:n).Thematrix V (not the
+c      transpose V T )is output as v(1:n,1:n).
+      INTEGER i,its,j,jj,k,l,nm
+      REAL*8 anorm,c,f,g,h,s,scale,x,y,z,rv1(NMAX),pythag
+      g=0.0  ! Householder reduction to bidiagonal form.
+      scale=0.0
+      anorm=0.0
+      do 25 i=1,n
+         l=i+1
+         rv1(i)=scale*g
+         g=0.0
+         s=0.0
+         scale=0.0
+         if(i.le.m)then
+            do 11 k=i,m
+               scale=scale+abs(a(k,i))
+ 11         continue
+            if(scale.ne.0.0)then
+               do 12 k=i,m
+                  a(k,i)=a(k,i)/scale
+                  s=s+a(k,i)*a(k,i)
+ 12            continue
+               f=a(i,i)
+               g=-sign(sqrt(s),f)
+               h=f*g-s
+               a(i,i)=f-g
+               do 15 j=l,n
+                  s=0.0
+                  do 13 k=i,m
+                     s=s+a(k,i)*a(k,j)
+ 13               continue
+                  f=s/h
+                  do 14 k=i,m
+                     a(k,j)=a(k,j)+f*a(k,i)
+ 14               continue
+ 15            continue
+               do 16 k=i,m
+                  a(k,i)=scale*a(k,i)
+ 16            continue
+            endif
+         endif
+         w(i)=scale *g
+         g=0.0
+         s=0.0
+         scale=0.0
+         if((i.le.m).and.(i.ne.n))then
+            do 17 k=l,n
+               scale=scale+abs(a(i,k))
+ 17         continue
+            if(scale.ne.0.0)then
+               do 18 k=l,n
+                  a(i,k)=a(i,k)/scale
+                  s=s+a(i,k)*a(i,k)
+ 18            continue
+               f=a(i,l)
+               g=-sign(sqrt(s),f)
+               h=f*g-s
+               a(i,l)=f-g
+               do 19 k=l,n
+                  rv1(k)=a(i,k)/h
+ 19            continue
+               do 23 j=l,m
+                  s=0.0
+                  do 21 k=l,n
+                     s=s+a(j,k)*a(i,k)
+ 21               continue
+                  do 22 k=l,n
+                     a(j,k)=a(j,k)+s*rv1(k)
+ 22               continue
+ 23            continue
+               do 24 k=l,n
+                  a(i,k)=scale*a(i,k)
+ 24            continue
+            endif
+         endif
+         anorm=max(anorm,(abs(w(i))+abs(rv1(i))))
+ 25   continue
+      do 32 i=n,1,-1 ! Accumulation of right-hand transformations.
+         if(i.lt.n)then
+            if(g.ne.0.0)then
+               do 26 j=l,n !Double division to avoid possible underflow.
+                  v(j,i)=(a(i,j)/a(i,l))/g
+ 26            continue
+               do 29 j=l,n
+                  s=0.0
+                  do 27 k=l,n
+                     s=s+a(i,k)*v(k,j)
+ 27               continue
+                  do 28 k=l,n
+                     v(k,j)=v(k,j)+s*v(k,i)
+ 28               continue
+ 29            continue
+            endif
+            do 31 j=l,n
+               v(i,j)=0.0
+               v(j,i)=0.0
+ 31         continue
+         endif
+         v(i,i)=1.0
+         g=rv1(i)
+         l=i
+ 32   continue
+      do 39 i=min(m,n),1,-1 !Accumulation of left-hand transformations.
+         l=i+1
+         g=w(i)
+         do 33 j=l,n
+            a(i,j)=0.0
+ 33      continue
+         if(g.ne.0.0)then
+            g=1.0/g
+            do 36 j=l,n
+               s=0.0
+               do 34 k=l,m
+                  s=s+a(k,i)*a(k,j)
+ 34            continue
+               f=(s/a(i,i))*g
+               do 35 k=i,m
+                  a(k,j)=a(k,j)+f*a(k,i)
+ 35            continue
+ 36         continue
+            do 37 j=i,m 
+               a(j,i)=a(j,i)*g
+ 37         continue
+         else
+            do 38 j= i,m
+               a(j,i)=0.0
+ 38         continue
+         endif
+         a(i,i)=a(i,i)+1.0
+ 39   continue
+      do 49 k=n,1,-1 !Diagonalization of the bidiagonal form:
+                     !Loop over singular values,and over allowed 
+                     !iterations.
+         do 48 its=1,30
+            do 41 l=k,1,-1      !Test for splitting.
+               nm=l-1           !Note that rv1(1) is always zero.
+               if((abs(rv1(l))+anorm).eq.anorm) goto 2
+               if((abs(w(nm))+anorm).eq.anorm) goto 1
+ 41         continue
+ 1          c=0.0               !Cancellation of rv1(l),if l > 1
+            s=1.0
+            do 43 i=l,k
+               f=s*rv1(i)
+               rv1(i)=c*rv1(i)
+               if((abs(f)+anorm).eq.anorm) goto 2
+               g=w(i)
+               h=pythag(f,g)
+               w(i)=h
+               h=1.0/h
+               c = (g*h)
+               s=-(f*h)
+               do 42 j=1,m
+                  y=a(j,nm)
+                  z=a(j,i)
+                  a(j,nm)=(y*c)+(z*s)
+                  a(j,i)=-(y*s)+(z*c)
+ 42            continue
+ 43         continue
+ 2          z=w(k)
+            if(l.eq.k)then      !Convergence.
+               if(z.lt.0.0)then !Singular alue is made nonnegative.
+                  w(k)=-z
+                  do 44 j=1,n
+                     v(j,k)=-v(j,k)
+ 44               continue
+               endif
+               goto 3
+            endif
+            if(its.eq.30) pause !'no convergence in svdcmp'
+            x=w(l)              !Shift from bottom 2-by-2 minor.
+            nm=k-1
+            y=w(nm)
+            g=rv1(nm)
+            h=rv1(k)
+            f=((y-z)*(y+z)+(g-h)*(g+h))/(2.0*h*y)
+            g=pythag(f,1.0d0)
+            f=((x-z)*(x+z)+h*((y/(f+sign(g,f)))-h))/x
+            c=1.0               ! Next QR transformation:
+            s=1.0
+            do 47 j=l,nm
+               i=j+1
+               g=rv1(i)
+               y=w(i)
+               h=s*g
+               g=c*g
+               z=pythag(f,h)
+               rv1(j)=z
+               c=f/z
+               s=h/z
+               f= (x*c)+(g*s)
+               g=-(x*s)+(g*c)
+               h=y*s
+               y=y*c
+               do 45 jj=1,n
+                  x=v(jj,j)
+                  z=v(jj,i)
+                  v(jj,j)= (x*c)+(z*s)
+                  v(jj,i)=-(x*s)+(z*c)
+ 45            continue
+               z=pythag(f,h)
+               w(j)=z           ! Rotation can be arbitrary if z =0
+               if(z.ne.0.0)then
+                  z=1.0/z
+                  c=f*z
+                  s=h*z
+               endif
+               f= (c*g)+(s*y)
+               x=-(s*g)+(c*y)
+               do 46 jj=1,m
+                  y=a(jj,j)
+                  z=a(jj,i)
+                  a(jj,j)= (y*c)+(z*s)
+                  a(jj,i)=-(y*s)+(z*c)
+ 46            continue
+ 47         continue
+            rv1(l)=0.0
+            rv1(k)=f
+            w(k)=x
+ 48      continue
+ 3       continue
+ 49   continue
+      return
+      END
+c ----------------------------------
+c     The Numerical Recipes for Fortran function: pythag
+      function pythag(a,b)
+      REAL*8 a,b,pythag
+      REAL*8 absa,absb
+      absa=abs(a)
+      absb=abs(b)
+      if(absa.gt.absb) then
+         pythag=absa*sqrt(1.+(absb/absa)**2)
+      else
+         if(absb.eq.0.)then
+            pythag=0.
+         else
+            pythag=absb*sqrt(1.+(absa/absb)**2)
+         endif
+      endif
+      return
+      END
+c -----------------------------------
+c     The Numerical Recipes for Fortran subroutine: svdvar
+      subroutine svdvar(v,ma,np,w,cvm,ncvm)
+      integer ma,ncvm,np,MMAX
+      real*8 cvm(ncvm,ncvm),v(np,np),w(np)
+      parameter (MMAX=20) !maximum number of fit parameters
+      integer i,j,k
+      real*8 sum,wti(MMAX)
+      do 1051 i=1,ma
+         wti(i)=0.
+         if(w(i).NE.0.) wti(i)=1./(w(i)*w(i))
+ 1051 continue
+      do 1054 i=1,ma !sum contributions to covariance matrix
+         do 1053 j=1,i
+            sum=0.
+            do 1052 k=1,ma
+               sum=sum+v(i,k)*v(j,k)*wti(k)
+ 1052       continue
+            cvm(i,j)=sum
+            cvm(j,i)=sum
+ 1053    continue
+ 1054 continue
+      return
+      END
+@
+
+
+1.4
+log
+@*** empty log message ***
+@
+text
+@d477 1
+a477 1
+      i = ifeffit('ff2chi(1-16, group=feff)')
+a485 40
+      write(*,*)''
+      write(*,*)'!----------------------------------------!'
+      write(*,*)'!Now we do a fit with 1 path.            !'
+      write(*,*)'!This will take a few seconds.           !'
+      write(*,*)'!----------------------------------------!'
+      write(*,*)''
+
+c -----------------------------------------------------------------------
+c     ?ONE PATH START
+c------------------------------------------------------------------------
+
+c     Let's try fitting this thing...
+c     this will fit between rmin and rmax
+      i = ifeffit('feffit(1, k=mudata.k, chi=mudata.chi, group=fit1)')
+
+      call print_echo
+
+c     Let's Plot out the fit in k,R or Q space...
+      write(*,*)'Experiment=blue, fit1=red,'
+      write(*,*)'Plotting the windowed fit in k space'
+      write(*,*)'Window function=black,dotted'
+      i = ifeffit('plotkspace fit1') 
+      i = ifeffit('mudata.kwin2=mudata.win*(ceil(mudata.chik_w)*1.05)')
+      i = ifeffit('plot(mudata.k,mudata.kwin2, 
+     &                  style=dotted, color=black)')
+
+      i = ifeffit('show @@path=1')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'fit_1path.ps\'.'
+      i = ifeffit('plot(device="/ps",file="fit_1path.ps")')
+      call print_echo
+
+
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+c -----------------------------------------------------------------------
+c     ONE PATH END
+c------------------------------------------------------------------------
+d489 1
+a489 1
+      write(*,*)'!Now we do a full fit with ALL the paths.!'
+a493 2
+c     OK- that is one path down.  Now I might increment the path fitting until
+c     we get to the maximum number of paths chosen.
+a631 11
+      write(*,*)'hit any key to go on...'
+      read(*,*),rubbish
+
+      write(*,*),'-------------------------------------'
+      write(*,*),'-End of this run                    -'
+      write(*,*),'-------------------------------------'
+
+
+c--------------------------------------------
+c     END KWIEGHT LOOP
+c--------------------------------------------
+d633 1
+d635 5
+a640 27
+
+c --------------------------------------------------------------------
+      reporting=1
+      do while ((reporting.NE.1).and.(reporting.NE.0))
+         write(*,*)'Do you want to output'
+         write(*,*)'all variables to a file?'
+         write(*,*)'If you would like all variables to be saved to'
+         write(*,*)'the file \'variables.out\' select 1.'
+         write(*,*)'Note: this will overwrite any previous file'
+         write(*,*)'      of the same name.'
+         write(*,*)'If you don\'t want to save the variables select 0.'
+c         read(*,*),reporting
+         
+         if (reporting==1) then
+            i = ifeffit('log(file=variables.out)')
+            i = ifeffit('&screen_echo=2')
+            i = ifeffit('show @@all')
+            i = ifeffit('log(close)')
+            i = ifeffit('&screen_echo=0')
+         else if (reporting==0) then
+            write(*,*)'You have chosen to finish-goodbye'
+         else
+            write(*,*)'You did not enter a valid selection...'
+         endif
+      enddo
+
+c     close the output xmu raw and interpolated file
+d642 1
+@
+
+
+1.3
+log
+@Broken.
+@
+text
+@d90 1
+d133 3
+a135 5
+c     Let's create a Fourier Filter Macro in IFEFFIT:
+      i = ifeffit('macro filter mudata "kweight=i_kweight, kmin=i_kmin,
+     &     kmax=i_kmax, dk=i_dk" "dr=m_dr, rmin=m_rmin, rmax=m_rmax"')
+      i = ifeffit('fftf(real=$1.chi, $2)')
+      i = ifeffit('fftr(real=$1.chir_re, imag=$1.chir_im, $3)')
+a137 2
+c      i = ifeffit('set $1.chiq = $1.chiq_re / ($1.k^weight)')
+      i = ifeffit('set $1.chiq_w = $1.chiq_re * $1.win')
+d140 1
+a140 6
+c     Create a macro to window R data:
+      i = ifeffit('macro rwindow mudata "dr=m_dr, rmin=m_rmin, 
+     &     rmax=m_rmax"')
+      i = ifeffit('fftr(real=$1.chir_re, imag=$1.chir_im, $2)')
+      i = ifeffit('set $1.chir_w = $1.chir_mag * $1.rwin')
+      i = ifeffit('end macro')
+d144 3
+a146 3
+      i = ifeffit('macro plotkspace fit1')
+      i = ifeffit('filter')
+      i = ifeffit('filter $1')
+a154 23
+c     Create a macro to plot the data in R space
+c     The first variable will be the array (e.g. fit1,fit2)
+      i = ifeffit('macro plotrspace fit1')
+      i = ifeffit('rwindow')
+      i = ifeffit('rwindow $1')
+      i = ifeffit('newplot(mudata.r, mudata.chir_w, color=blue,')
+      i = ifeffit('title=\'|\\gx(R)|(windowed) vs R\',')
+      i = ifeffit('ylabel=\'|\\gx(R)|\',xmin=xmin_r, xmax=xmax_r,')
+      i = ifeffit('xlabel=\' R (\\A) \', style=solid)')
+      i = ifeffit('plot($1.r,$1.chir_w, color=red, style=dashed)')
+      i = ifeffit('end macro')
+
+c     Create a macro to plot the data in Q space
+c     The first variable will be the array (e.g. fit1,fit2)
+      i = ifeffit('macro plotqspace fit1')
+      i = ifeffit('filter')
+      i = ifeffit('filter $1')
+      i = ifeffit('newplot(mudata.k, mudata.chiq_w, color=blue,')
+      i = ifeffit('title=\'\\gx(Q)(windowed) vs Q\',')
+      i = ifeffit('ylabel=\'\\gx(Q)\',xmin=xmin_k, xmax=xmax_k,')
+      i = ifeffit('xlabel=\' Q (\\A\\u-1\\d) \', style=solid)')
+      i = ifeffit('plot($1.k,$1.chiq_w, color=red, style=dashed)')
+      i = ifeffit('end macro')
+a174 1
+      i = ifeffit('read_data(data/mo.dat, group=mudata, type=xmu)')
+a179 2
+      i = ifeffit('mudata.dxmu=mudata.3')
+      i = ifeffit('mudata.reldxmu=mudata.dxmu/mudata.xmu')
+d188 3
+a190 1
+      i = ifeffit('guess(e0_cor=0.0,alpha=0.0001)')
+a223 20
+c      do i=1,max_num_paths
+c        write(temp,*),i
+c        write(*,*),temp(2:10)
+
+c        write(rubbish,*),'guess(s02_',temp(2:4),'=0.9)'
+c        write(*,*),rubbish
+c        i = ifeffit(rubbish)
+
+c        write(rubbish,*),'path(index=1,feff=feff/feff0001.dat,'
+
+c        write(rubbish,*),label=path 1, s02=s02_1,e0=e0_cor)')
+
+c        write(rubbish,*),'path(1, sigma2=debye(293,max(0,theta))+
+
+c     &        ss2_norm_correction)'
+c        write(rubbish,*),'get_path(1, prefix=path1)'
+
+c        write(rubbish,*),'path(1, delr=alpha*path1_reff)'
+
+c      end do
+d371 3
+a373 24
+c     All data read in from files.
+c --------------------------------------------------------------------
+      write(*,*)'Let\'s choose a fitting space'
+      fit_space=1
+      write(*,*)'Which space do you want to do the fitting in?'
+      write(*,*)'The default is R space (selection 2)'
+      write(*,*)'Grant recommends either R or Q space :-)'
+      write(*,*)'1 - k space'
+      write(*,*)'2 - R space'
+      write(*,*)'3 - Q space (back transformed k-space)'
+c      read(*,*),fit_space
+      
+      if (fit_space==1) then
+         i = ifeffit('$fit_space=\'k\'')
+      else if (fit_space==2) then
+         i = ifeffit('$fit_space=\'R\'')
+      else if (fit_space==3) then
+         i = ifeffit('$fit_space=\'Q\'')
+      else
+         write(*,*)'You did not enter a valid selection...'
+         write(*,*)'Setting fitting space to default R space == 2'
+         fit_space=2
+         i = ifeffit('$fit_space=\'R\'')
+      end if
+a386 4
+      do run_num=1,num_e_runs,1
+
+         write(*,*)'Let\'s do a background removal'
+
+d388 1
+a388 69
+         e0=2.0008d4
+
+         write(*,*),'This is iteration ',run_num
+         write(*,*),'which is the value of the kweight we shall use'
+
+
+         if (run_num==1) then
+
+c     How many knots does the user want in the spline
+            i = iffputsca('i_nknots',nknots)
+            i = ifeffit('show i_nknots')
+
+            i = iffputsca('i_rbkg',rbkg)
+            i = ifeffit('show i_rbkg')
+
+c     Let's do an alternate background subtraction to check things:
+         
+            pre2=-160
+            pre1=-300
+
+            i = ifeffit('find_e0=true')
+
+            i = iffputsca('pre2',pre2)
+            i = ifeffit('show pre2')
+
+            i = iffputsca('pre1',pre1)
+            i = ifeffit('show pre1')
+
+            call print_echo
+         end if
+
+c     Do the pre_edge calculation and plot the results:
+      i = ifeffit('pre_edge(mudata.energy,mudata.xmu,pre2=pre2,')
+      i = ifeffit('pre1=pre1)')
+      i = ifeffit('show e0, edge_step, pre1, pre2, norm1, norm2')
+      i = ifeffit('show pre_slope, pre_offset')
+      
+      call print_echo
+         
+c     Plot the raw mu data
+      i = ifeffit('newplot(mudata.energy,mudata.xmu,')
+      i = ifeffit('style=points1, color=blue,')
+      i = ifeffit('title=\' [\\gm/\\gr] vs E\',xlabel=\'E (eV)\',')
+      i = ifeffit('ylabel=\' [\\gm/\\gr] (cm\\u2\\d/g) \',')
+      i = ifeffit('xmin=19500,xmax=21000)')
+         
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'mu_v_energy.ps\'.'
+      i = ifeffit('plot(device="/ps",file="mu_v_energy.ps")')
+      call print_echo
+
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+
+c     Plot the pre-edge background function:
+      i = ifeffit('mudata.preedge=mudata.xmu-mudata.pre')
+      i = ifeffit('newplot(mudata.energy,mudata.xmu,')
+      i = ifeffit('style=solid, color=blue,')
+      i = ifeffit('title=\' [\\gm/\\gr] vs E\',xlabel=\'E (eV)\',')
+      i = ifeffit('ylabel=\' [\\gm/\\gr] (cm\\u2\\d/g) \')')
+      i = ifeffit('plot(mudata.preedge,style=dashed,')
+      i = ifeffit('color=red)')
+         
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'pre_edgea.ps\'.'
+      i = ifeffit('plot(device="/ps",file="pre_edgea.ps")')
+      call print_echo
+a389 2
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+d391 1
+a391 13
+c     Plot the pre-edge function function:
+      i = ifeffit('mudata.preedge=mudata.xmu-mudata.pre')
+      i = ifeffit('newplot(mudata.energy,mudata.pre,')
+      i = ifeffit('style=solid, color=blue,')
+      i = ifeffit('title=\' [\\gm/\\gr]\\dedge\\u vs E\',')
+      i = ifeffit('xlabel=\'E (eV)\',')
+      i = ifeffit('ylabel=\' [\\gm/\\gr]\\dedge\\u(cm\\u2\\d/g) \')')
+         
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'ifeffit_autobk_error.ps\'.'
+      i = ifeffit('plot(device="/ps",file="ifeffit_autobk_error.ps")')
+      call print_echo
+a392 18
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+      
+c     Plot the pre-edge subtracted from the experimental data:
+      i = ifeffit('newplot(mudata.energy,mudata.pre,')
+      i = ifeffit('style=solid, color=blue,')
+      i = ifeffit('title=\' [\\gm/\\gr]\\dedge\\u vs E\',')
+      i = ifeffit('xlabel=\'E (eV)\',')
+      i = ifeffit('ylabel=\' [\\gm/\\gr]\\dedge\\u (cm\\u2\\d/g) \')')
+      
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'pre_suba.ps\'.'
+      i = ifeffit('plot(device="/ps",file="pre_suba.ps")')
+      call print_echo
+
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+a393 26
+c     Now I should spline the pre_edge_subtracted thingymo.
+c     Let's rename the pre-edge subtracted data as gpre (Grant's pre)
+      i = ifeffit ('mudata.gpre=mudata.pre')
+c     Do a spline on the data:
+      i = iffputsca('&e0_guess', e0)
+c     Check the guess was input correctly
+      i = ifeffit('show &e0_guess')
+c     Do a spline with the gpre data.
+      i = ifeffit('spline(mudata.energy, mudata.gpre,
+     &     kweight=1, e0=&e0_guess, nknots=i_nknots,
+     &        rbkg=i_rbkg)')
+c     Plot the spline:
+      i = ifeffit('newplot(x=mudata.energy,y=mudata.pre)')
+      i = ifeffit('plot(mudata.energy, mudata.bkg,')
+      i = ifeffit('title=\' [\\gm/\\gr] vs E\',xlabel=\'E (eV)\',')
+      i = ifeffit('ylabel=\' [\\gm/\\gr] (cm\\u2\\d/g) \',')
+      i = ifeffit('xmin=(&e0_guess-200),')
+      i = ifeffit('xmax=(&e0_guess+800),style=dashed)')
+c      i = ifeffit('plot(mudata.gpre,style=dotted)')
+      write(*,*)'Spline has been plotted.'
+      
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'spline_new.ps\'.'
+      i = ifeffit('plot(device="/ps",file="spline_new.ps")')
+      call print_echo
+a394 290
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+
+c     Now the solid blue is our attenuation just due to the k
+c     edge and the red is the atomic attenuation due to a single
+c     atom in the electronic structure, but with no scattering.
+c     so by the xafs equation we need chi=(pre-bkg)/bkg.  I
+c     will call this gchi- as in Grant's chi :-)
+c      i = ifeffit('mudata.gchie=(mudata.gpre-mudata.bkg)/
+c     &     mudata.bkg')
+c     Now need to convert gchie to a function of k...rather than E.
+c     Export both of them into my fortran program:
+      m = iffgetarr('mudata.gpre',my_pre)
+      p = iffgetarr('mudata.bkg',my_bkg)
+      n = iffgetarr('mudata.energy',my_energy)
+      q = iffgetarr('mudata.reldxmu',reldxmu)
+      write(*,*)'my energy array has ',n,' elements.'
+      write(*,*)'my pre array has ',m,' elements.'
+      write(*,*)'my bkg array has ',p,' elements.'
+
+      j=1
+      do while (my_energy(j).LT.e0)
+         j=j+1
+      end do
+      first_energy=j-1
+      do while (j.LE.m)
+c         write(*,*),j-first_energy
+         my_k(j-first_energy)=1.0d-10*SQRT(2*1.6d-19*9.11d-31*
+     &        (my_energy(j)-e0))/1.055d-34
+         old_chik(j-first_energy)=(my_pre(j)-my_bkg(j))/
+     &        my_bkg(first_energy+1)
+         my_chik(j-first_energy)=(my_pre(j)-my_bkg(j))/
+     &        my_bkg(j)
+         my_dchik(j-first_energy)=my_chik(j-first_energy)
+     &        *reldxmu(j-first_energy)
+c         write(*,*),j,my_k(j-first_energy),my_chik(j-first_energy)
+         j=j+1
+      end do
+
+      kpoints=m-first_energy
+
+c     Put both my_chik and my_k back into IFEFFIT:
+      i = iffputarr('mudata.gchi',m-first_energy,my_chik)
+      i = iffputarr('mudata.gk',m-first_energy,my_k)
+      i = iffputarr('mudata.gdchi',m-first_energy,my_dchik)
+
+      i = iffputarr('mudata.crapchi',m-first_energy,old_chik)
+
+c     Now plot both the chi from the spline and the gchi:
+      write(*,*)'Plotting chi vs k and gchi (Grant\'s chi) vs k'
+      i = ifeffit('newplot(mudata.k, mudata.chi, style=points20,')
+      i = ifeffit('title=\' \\gx(k) vs k\',ylabel=\'\\gx(k)\',')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \')')
+      i = ifeffit('plot(mudata.k,mudata.chi,style=solid)')
+      i = ifeffit('plot(mudata.gk,mudata.gchi,style=points5)')
+ 
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'my_chi.ps\'.'
+      i = ifeffit('plot(device="/ps",file="my_chi.ps")')
+      call print_echo
+
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+
+
+      if (run_num==1) then
+
+c -------------------------------------
+c     PREPARE FOR INTERPOLATION
+c--------------------------------------
+      int_length=5.0d-2
+      write(*,*)'NEW INTERPOLATION'
+c     Create interp_k and interp_chi and interp_dchi
+      do i=1,5000,1
+         interp_k(i)=int_length*i
+      end do
+c     So interp_k=(0,0.05,0.10,0.15,...)
+
+c -----------------------------------------------------------------
+c     START MY INTERPOLATION TECHNIQUE
+c------------------------------------------------------------------
+c     we start with my_chik and my_k
+c     The standard deviations are my_dchik
+c -----------------------------------------------------------------
+
+c     do the interpolation over 5 points (n_int)
+c     The interp data arrays are x_int,y_int and dy_int
+c     Let's do the first interpolation for the first five points
+c     Original data counter is i_unint
+c     Interpolated data counter is i_int
+      do i=1,(kpoints-n_fit_pts+1),1
+         do j=1,n_fit_pts,1
+            x_int(j)=my_k(j+i-1)
+            y_int(j)=my_chik(j+i-1)
+            dy_int(j)=my_dchik(j+i-1)
+         end do
+c     We now have the data arrays necessary to do a fit
+      
+         call svdfit(x_int,y_int,n_fit_pts,dy_int,fitcoeffs,ma,u,v,w,
+     &        n_fit_pts,n_fit_pts,intchisq,funcs)
+
+c     Now get the uncertainties in fitcoeffs:
+
+         call svdvar(v,ma,n_fit_pts,w,cvm,ma)
+
+c     the first ma diagonal elements of the cvm matrix
+c     correspond to the variances of the fitted parameters
+
+         a=fitcoeffs(1)
+         b=fitcoeffs(2)
+         c=fitcoeffs(3)
+         d=fitcoeffs(4)
+         da=sqrt(cvm(1,1))
+         db=sqrt(cvm(2,2))
+         dc=sqrt(cvm(3,3))
+         dd=sqrt(cvm(4,4))
+
+c      write(*,*),a,b,c,d,da,db,dc,dd
+c     my_k(i_unint) was the maximum value of k used in the fit
+c     The number of points we are going to interpolate up
+c     to is i_int
+
+         do j=1,(n_fit_pts-1),1
+            i_int_low=aint(my_k(i+j-1)/int_length)+1
+            if (i==1) then
+               i_int_low=1
+            end if
+            i_int_high=aint(my_k(i+j)/int_length)
+c            write(*,*)'i_high=',i_int_high,' i_low=',i_int_low
+            do k=i_int_low,i_int_high,1
+               interp_chitmp(j,k)=a*(k*int_length)**3
+     &              +b*(k*int_length)**2+c*(k*int_length)+d
+               interp_dchitmp(j,k)=da*(k*int_length)**3
+     &              +db*(k*int_length)**2+dc*(k*int_length)+dd
+            end do
+         end do
+
+c        Print them out
+c         do i=1,i_int,1
+c            write(*,*),interp_k(i),interp_chi(i),interp_dchi(i)
+c         end do
+      end do
+
+c     Maximum k index
+      kpoints_int=aint(my_k(kpoints)/int_length)
+      i_int=aint(my_k(1)/int_length)+1
+      write(*,*)'i_int=',i_int
+
+c     Average the data at each point
+      do i=1,kpoints_int,1
+
+         interp_chi(i)=0.d0
+         interp_dchi(i)=0.d0
+         sum_wt=0.d0
+
+         do j=1,n_fit_pts-1,1
+            if (interp_dchitmp(j,i).NE.0.d0) then
+               wt=1.d0/(interp_dchitmp(j,i)**2)
+            else 
+               wt=0.d0
+            end if
+            sum_wt=sum_wt+wt
+            interp_chi(i)=interp_chi(i)+wt*interp_chitmp(j,i)
+         end do
+         if (sum_wt.NE.0.d0) then
+            interp_chi(i)=interp_chi(i)/sum_wt
+         else
+            interp_chi(i)=0.d0
+         end if
+
+         do j=1,n_fit_pts-1,1
+            if (interp_dchitmp(j,i).NE.0.d0) then
+               wt=1.d0/(interp_dchitmp(j,i)**2)
+            else
+               wt=0.d0
+            end if   
+            sx=(interp_chitmp(j,i)-interp_chi(i))**2
+            interp_dchi(i)=interp_dchi(i)+sx*wt
+         end do
+         if (sum_wt.NE.0.d0) then
+            interp_dchi(i)=sqrt(interp_dchi(i)/(sum_wt*(n_fit_pts-1)))
+         else
+            interp_dchi(i)=0.d0
+         end if
+      end do
+
+
+
+c      i = iffputarr('myint.k',kpoints_int,interp_k)
+c      i = iffputarr('myint.chi',kpoints_int,interp_chi)
+c      i = iffputarr('myint.dchi',kpoints_int,interp_dchi)
+
+c -----------------------------------------------------------------
+c     END MY INTERPOLATION TECHNIQUE
+c -----------------------------------------------------------------
+
+c      i = iffputarr('myint.k',kpoints_int,interp_k)
+c      i = ifeffit('set myint.chi=splint(mudata.gk,mudata.gchi,myint.k)')
+c      i = ifeffit(
+c     &         'set myint.dchi=linterp(mudata.gk,mudata.gdchi,myint.k)')
+
+
+      i = ifeffit('set myint.k    = mudata.gk')
+      i = ifeffit('set myint.chi  = mudata.gchi')
+      i = ifeffit('set myint.dchi = mudata.gdchi')
+
+c -----------------------------------------------------------------
+c     START MY INTERPOLATION GRAPHS
+c -----------------------------------------------------------------
+      i = ifeffit('newplot(myint.k,myint.chi,style=points5,')
+      i = ifeffit('title=\' \\gx(k) vs k\',')
+      i = ifeffit('ylabel=\' \\gx(k)\')')
+c      i = ifeffit('dy=myint.dchi)')
+      i = ifeffit('plot(mudata.gk, mudata.gchi,style=points5)')
+c      i = ifeffit('plot(myint.k,myint.dchi,style=points1,color=black)')
+      write(*,*)'look at that...'
+
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'myinterp1.ps\'.'
+      i = ifeffit('plot(device="/ps",file="myinterp1.ps")')
+      call print_echo 
+
+
+      i = ifeffit('newplot(mudata.gk,mudata.gchi,style=points5,')
+      i = ifeffit('title=\' \\gx(k) vs k\',')
+      i = ifeffit('ylabel=\' \\gx(k)\')')
+c      i = ifeffit('dy=myint.dchi)')
+      i = ifeffit('plot(myint.k, myint.chi,style=points20)')
+      i = ifeffit('plot(myint.k, myint.chi,style=solid,')
+      i = ifeffit('color=red)')
+c      i = ifeffit('plot(myint.k,myint.dchi,style=points1,color=black)')
+      write(*,*)'look at that...'
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'myinterp1a.ps\'.'
+      i = ifeffit('plot(device="/ps",file="myinterp1a.ps")')
+      call print_echo
+
+
+      i=ifeffit('newplot(myint.k,myint.chi,style=solid,color=blue,')
+      i = ifeffit('title=\' \\gx(k) vs k\',')
+      i = ifeffit('ylabel=\'\\gx(k)\',')
+      i=ifeffit('dy=myint.dchi)')
+
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'myinterp2.ps\'.'
+      i = ifeffit('plot(device="/ps",file="myinterp2.ps")')
+      call print_echo
+
+      i = ifeffit('newplot(myint.k,myint.dchi,')
+      i = ifeffit('title=\' d\\gx(k) vs k\',')
+      i = ifeffit('ylabel=\' d\\gx(k) \'),style=points1')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'myinterpe.ps\'.'
+      i = ifeffit('plot(device="/ps",file="myinterpe.ps")')
+      call print_echo
+
+c -----------------------------------------------------------------
+c     END MY INTERPOLATION GRAPHS
+c -----------------------------------------------------------------
+
+      end if
+      
+      call print_echo
+
+c--------------------------------------------------------------------
+c     NOW LET'S DO THE USUAL FIT FOR MYINT.CHI RATHER THAN MUDATA.CHI!
+      i = ifeffit('mudata.chi=myint.chi')
+      i = ifeffit('mudata.dchi=myint.dchi')
+      i = ifeffit('mudata.k=myint.k')
+
+      i = ifeffit('write_data(file=chi_v_k.dat,$title*,
+     &                        mudata.k,mudata.chi,mudata.dchi)')
+
+c-------------------------------------------------------------------
+c     OK Spline is done now. Now you have mudata.bkg (the background
+c     spline), mudata.k (the k values interpolated onto
+c     0.5 intervals), mudata.chi (the normalised xafs vs k interpolated)
+c --------------------------------------------------------------------
+
+      kweight=(run_num*1.0d0)
+c      kweight=3.0d0
+d399 1
+a399 1
+      if (run_num==1) then ! only do this on the first run
+d407 1
+d414 24
+d439 1
+a439 32
+c        kmin setting
+         i = iffputsca('i_kmin',kmin)
+         i = ifeffit('set(kmin=i_kmin)')
+         i = ifeffit('show kmin')
+
+c        kmax setting
+         i = iffputsca('i_kmax',kmax)
+         i = ifeffit('set(kmax=i_kmax)')
+         i = ifeffit('show kmax')
+
+c        dk setting - the window edge width in the fft
+c        By setting dk you set both the lower and upper widths dk1
+c        and dk2 equal to dk.  A two step selection could be introduced
+c        to set both dk1 and dk2.
+         i = iffputsca('i_dk',dk)
+         i = ifeffit('set(dk=i_dk)')
+         i = ifeffit('show dk')
+
+c        Let's set the plot xrange:
+         i = ifeffit('xmin_r=0.95*(i_rmin-i_dr)')
+         i = ifeffit('xmax_r=1.05*(i_rmax+i_dr)')
+         i = ifeffit('xmin_k=0.95*(i_kmin-i_dk)')
+         i = ifeffit('xmax_k=1.05*(i_kmax+i_dk)')
+
+c        Show the user the k and R space chi
+         i = ifeffit('fftf(real=mudata.chi, kmin = kmin, kmax=kmax,')
+         i = ifeffit('dk = dk, kweight=kweight)')
+         i = ifeffit('show kweight')
+c        Plot the windowed k-weighted k space data with the 
+c        chosen parameters
+         i = ifeffit('set mudata.chik = mudata.chi * mudata.k^kweight')
+         i = ifeffit('set mudata.chik_w = mudata.chik * mudata.win')    
+d447 2
+a448 1
+         i = ifeffit('plot(mudata.kwina, style=dotted, color=black)')
+a456 38
+c        Plot the results
+         write(*,*)'Plotting |chi(R)| vs R'
+         i = ifeffit('newplot(mudata.r, mudata.chir_mag,')
+         i = ifeffit('title=\'|\\gx(R)| vs R\',ylabel=\'|\\gx(R)|\',')
+         i = ifeffit('xlabel=\' R (\\A) \')')
+
+c        Save this plot
+         write(*,*)'This plot has been saved as'
+         write(*,*)'\'fft_kweight_chi.ps\'.'
+         i = ifeffit('plot(device="/ps",file="fft_kweight_chi.ps")')
+         call print_echo
+
+
+c        rmin setting
+         i = iffputsca('i_rmin',rmin)
+         i = ifeffit('show i_rmin')
+
+c        rmax setting
+         i = iffputsca('i_rmax',rmax)
+         i = ifeffit('show i_rmax')
+
+c        dr setting - the window edge width in the fftr in R space
+c        By setting dr you set both the lower and upper widths dr1
+c        and dr2 equal to dr.  A two step selection could be introduced
+c        to set both dr1 and dr2.
+         i = iffputsca('i_dr',dr)
+         i = ifeffit('show i_dr')
+
+         call print_echo
+
+c        Let's determine the maximum number of independent parameters that
+c        can be fitted according to Nyquist's sampling theorem
+         PI = 3.141592654
+         max_indpt = 2*(kmax-kmin)*(rmax-rmin)/PI
+         write(*,*)'The maximum number of independent parameters that'
+         write(*,*)'can be fitted according to Nyquist\'s sampling'
+         write(*,*)'theorem is N_max_independent=',int(max_indpt)
+
+a458 13
+      i = ifeffit('m_dr=i_dr, m_rmin=i_rmin, m_rmax=i_rmax')
+
+c     Let's find the maximum position in R space.  Which corresponds
+c     to the nearest neighbour distance- I think.
+      i = ifeffit('chi_r_maxima=ceil(mudata.chir_mag)')
+      i = ifeffit('n_r_maxima=nofx(mudata.chir_mag,chi_r_maxima)')
+      i = ifeffit('show chi_r_maxima')
+c     Get the array of r space data from ifeffit
+      m = iffgetarr('mudata.r', mu_r)
+      i = iffgetsca('n_r_maxima', n_max)
+      r_peak=mu_r(n_max)
+      write(*,*)'The maxima of chi(r) occurs at r_peak=',r_peak
+
+a462 5
+c     Let's set the plot xrange:
+      i = ifeffit('xmin_r=0.95*(m_rmin-m_dr)')
+      i = ifeffit('xmax_r=1.05*(m_rmax+m_dr)')
+      i = ifeffit('xmin_k=0.95*(i_kmin-i_dk)')
+      i = ifeffit('xmax_k=1.05*(i_kmax+i_dk)')
+a463 11
+c     Get the windowed chi vs k and plot it (also do a fourier filter)
+      i = ifeffit('filter')
+      write(*,*)'Plotting windowed chi(k) vs k'
+      write(*,*)'Fourier filtered Q space chi(Q) dashed black'
+      i = ifeffit('newplot(mudata.k,mudata.chik_w,xmin=xmin_k,')
+      i = ifeffit('title=\'k\\u3\\d\\gx(k)(windowed) vs k\',')
+      i = ifeffit('ylabel=\'k\\u3\\d\\gx(k)\',xmax=xmax_k,')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+c      i = ifeffit('plot(mudata.q, mudata.chiq_re)')
+      i = ifeffit('plot(mudata.q, mudata.chiq_w, style=dashed)')
+      i = ifeffit('plot(mudata.kwina, style=dotted, color=black)')
+a464 5
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'win_kweight_chi_filter.ps\'.'
+      i = ifeffit('plot(device="/ps",file="win_kweight_chi_filter.ps")')
+      call print_echo
+d476 2
+a477 48
+      if (max_num_paths == 1) then
+         i = ifeffit('ff2chi(1, group=feff)')
+      end if
+      if (max_num_paths == 2) then
+         i = ifeffit('ff2chi(1-2, group=feff)')
+      end if
+      if (max_num_paths == 3) then
+         i = ifeffit('ff2chi(1-3, group=feff)')
+      end if
+      if (max_num_paths == 4) then
+         i = ifeffit('ff2chi(1-4, group=feff)')
+      end if
+      if (max_num_paths == 5) then
+         i = ifeffit('ff2chi(1-5, group=feff)')
+      end if
+      if (max_num_paths == 6) then
+         i = ifeffit('ff2chi(1-6, group=feff)')
+      end if
+      if (max_num_paths == 7) then
+         i = ifeffit('ff2chi(1-7, group=feff)')
+      end if
+      if (max_num_paths == 8) then
+         i = ifeffit('ff2chi(1-8, group=feff)')
+      end if
+      if (max_num_paths == 9) then
+         i = ifeffit('ff2chi(1-9, group=feff)')
+      end if
+      if (max_num_paths == 10) then
+         i = ifeffit('ff2chi(1-10, group=feff)')
+      end if
+      if (max_num_paths == 11) then
+         i = ifeffit('ff2chi(1-11, group=feff)')
+      end if
+      if (max_num_paths == 12) then
+         i = ifeffit('ff2chi(1-12, group=feff)')
+      end if
+      if (max_num_paths == 13) then
+         i = ifeffit('ff2chi(1-13, group=feff)')
+      end if
+      if (max_num_paths == 14) then
+         i = ifeffit('ff2chi(1-14, group=feff)')
+      end if
+      if (max_num_paths == 15) then
+         i = ifeffit('ff2chi(1-15, group=feff)')
+      end if
+      if (max_num_paths == 16) then
+         i = ifeffit('ff2chi(1-16, group=feff)')
+      end if
+a479 10
+      
+c     Show the user the R space theoretical chi(R)
+      i = ifeffit('fftf(real=feff.chi, kmin = kmin, kmax = kmax,')
+      i = ifeffit('dk = dk, kweight=kweight)')
+c     Plot the results
+      write(*,*)'Plotting FEFF (theoretical) chi(R) vs R'
+      write(*,*)'from ff2chi (i.e. without fitting)'
+      i = ifeffit('newplot(feff.r, feff.chir_mag, color=green,')
+      i = ifeffit('title=\'|\\gx(R)| vs R\',ylabel=\'|\\gx(R)|\',')
+      i = ifeffit('xlabel=\' R (\\A) \')')
+d481 4
+a484 2
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+d486 6
+a491 2
+c     Include background refinement in the ifeffit fitting
+      i = ifeffit('do_bkg=true')
+d499 1
+a499 1
+      i = ifeffit('feffit(1, chi=mudata.chi, group=fit1)')
+a504 2
+
+      if (fit_space==1) then
+a505 1
+      i = ifeffit('plotkspace fit1')
+d507 1
+a507 2
+c      write(*,*)'Raw experimental data=green,dotted'
+c     also plot the window function
+d509 3
+a511 26
+      i = ifeffit('plot(mudata.kwin2, style=dotted, color=black)')
+c     Plot the unwindowed experimental data
+c      i = ifeffit('plot(mudata.chik, color=green,')
+c      i = ifeffit('style=dotted)')
+
+      else if (fit_space==2) then
+      write(*,*)'Plotting the windowed fit in R space'
+      i = ifeffit('plotrspace fit1')
+      write(*,*)'Window function=black,dotted'
+c      write(*,*)'Raw experimental data=green,dotted'
+c     also plot the window function
+      i = ifeffit('mudata.rwin2=mudata.rwin*(ceil(mudata.chir_w)*1.05)')
+      i = ifeffit('plot(mudata.rwin2, style=dotted, color=black)')
+c     Plot the unwindowed experimental data
+c      i = ifeffit('plot(mudata.chir_mag, color=green,')
+c      i = ifeffit('style=dotted)')
+
+      else if (fit_space==3) then
+      write(*,*)'Plotting the windowed fit in Q space'
+      i = ifeffit('plotqspace fit1')
+      write(*,*)'Window function=black,dotted'
+c      write(*,*)'Raw experimental data=green,dotted'
+c     also plot the window function
+      i = ifeffit('mudata.qwin2=mudata.win*(ceil(mudata.chiq_w)*1.05)')
+      i = ifeffit('plot(mudata.qwin2, style=dotted, color=black)')
+      end if
+a519 6
+      write(*,*)''
+      write(*,*)'!----------------------------------------!'
+      write(*,*)'!Now we do a full fit with ALL the paths.!'
+      write(*,*)'!This will take about a minute.          !'
+      write(*,*)'!----------------------------------------!'
+      write(*,*)''
+d527 6
+a536 5
+      if (max_num_paths == 2) then
+         i = ifeffit('feffit(1-2, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=2')
+         call print_echo
+      end if
+d538 2
+a539 77
+      if (max_num_paths == 3) then
+         i = ifeffit('feffit(1-3, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=3')
+         call print_echo
+      end if
+
+      if (max_num_paths == 4) then
+         i = ifeffit('feffit(1-4, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=4')
+         call print_echo
+      end if
+
+      if (max_num_paths == 5) then
+         i = ifeffit('feffit(1-5, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=5')
+         call print_echo
+      end if
+
+      if (max_num_paths == 6) then
+         i = ifeffit('feffit(1-6, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=6')
+         call print_echo
+       end if
+
+      if (max_num_paths == 7) then
+         i = ifeffit('feffit(1-7, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=7')
+         call print_echo
+      end if
+
+      if (max_num_paths == 8) then
+         i = ifeffit('feffit(1-8, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=8')
+         call print_echo
+      end if
+
+      if (max_num_paths == 9) then
+         i = ifeffit('feffit(1-9, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=9')
+         call print_echo
+      end if
+
+      if (max_num_paths == 10) then
+         i = ifeffit('feffit(1-10, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=10')
+         call print_echo
+      end if
+
+      if (max_num_paths == 11) then
+         i = ifeffit('feffit(1-11, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=11')
+         call print_echo
+      end if
+
+      if (max_num_paths == 12) then
+         i = ifeffit('feffit(1-12, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=12')
+         call print_echo
+      end if
+
+      if (max_num_paths == 13) then
+         i = ifeffit('feffit(1-13, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=13')
+         call print_echo
+      end if
+
+      if (max_num_paths == 14) then
+         i = ifeffit('feffit(1-14, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=14')
+         call print_echo
+      end if
+
+      if (max_num_paths == 15) then
+         i = ifeffit('feffit(1-15, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=15')
+         call print_echo
+      end if
+d541 1
+a541 21
+      if (max_num_paths == 16) then
+         i = ifeffit('feffit(1-16, chi=mudata.chi, group=fit)')
+         i = ifeffit('show @@path=16')
+         call print_echo
+      end if
+
+c     Plot the result of the paths
+      write(*,*)'Plotting the fit and exp data'
+      write(*,*)'Expt=blue, fit=red'
+      if (fit_space==1) then
+         write(*,*)'Plotting the windowed fit in k space'
+         i = ifeffit('plotkspace fit')
+      else if (fit_space==2) then
+         write(*,*)'Plotting the windowed fit in R space'
+         i = ifeffit('plotrspace fit')
+      else if (fit_space==3) then
+         write(*,*)'Plotting the windowed fit in Q space'
+         i = ifeffit('plotqspace fit')
+      end if 
+
+      
+a542 3
+      call print_echo
+
+c     Let's try to get the correlations going...
+a543 2
+      call print_echo
+
+d550 7
+a562 2
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+d573 3
+a575 49
+      if (max_num_paths == 1) then
+         i = ifeffit('ff2chi(1, group=feffit)')
+      end if
+      if (max_num_paths == 2) then
+         i = ifeffit('ff2chi(1-2, group=feffit)')
+      end if
+      if (max_num_paths == 3) then
+         i = ifeffit('ff2chi(1-3, group=feffit)')
+      end if
+      if (max_num_paths == 4) then
+         i = ifeffit('ff2chi(1-4, group=feffit)')
+      end if
+      if (max_num_paths == 5) then
+         i = ifeffit('ff2chi(1-5, group=feffit)')
+      end if
+      if (max_num_paths == 6) then
+         i = ifeffit('ff2chi(1-6, group=feffit)')
+      end if
+      if (max_num_paths == 7) then
+         i = ifeffit('ff2chi(1-7, group=feffit)')
+      end if
+      if (max_num_paths == 8) then
+         i = ifeffit('ff2chi(1-8, group=feffit)')
+      end if
+      if (max_num_paths == 9) then
+         i = ifeffit('ff2chi(1-9, group=feffit)')
+      end if
+      if (max_num_paths == 10) then
+         i = ifeffit('ff2chi(1-10, group=feffit)')
+      end if
+      if (max_num_paths == 11) then
+         i = ifeffit('ff2chi(1-11, group=feffit)')
+      end if
+      if (max_num_paths == 12) then
+         i = ifeffit('ff2chi(1-12, group=feffit)')
+      end if
+      if (max_num_paths == 13) then
+         i = ifeffit('ff2chi(1-13, group=feffit)')
+      end if
+      if (max_num_paths == 14) then
+         i = ifeffit('ff2chi(1-14, group=feffit)')
+      end if
+      if (max_num_paths == 15) then
+         i = ifeffit('ff2chi(1-15, group=feffit)')
+      end if
+      if (max_num_paths == 16) then
+         i = ifeffit('ff2chi(1-16, kmin=floor(mudata.k),
+     &             kmax=ceil(mudata.k), group=feffit)')
+      end if
+a583 2
+c     xmin=i_kmin and xmax=i_kmax have been used here
+c      i = ifeffit('xmin=i_kmin, xmax=i_kmax,')
+d587 1
+a588 1
+c     also plot the window function-dotted
+d590 3
+a592 1
+      i = ifeffit('plot(mudata.kwin2, style=dotted, color=black)')
+a599 17
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+
+ccccccccccccccccccccccccccccc
+cc     First we fft the theoretical chi(k) into r space:
+c      i = ifeffit('fftf(real=mudata.chi)')
+cc     Now fft the experimental fitted chi(k)
+c      i = ifeffit('fftf(real=feffit.chi)')
+cc     Plot the result of the fourier transform into R space.
+c      write(*,*)'Plotting |chi(R)| vs R (solid=expt,dashed=theory)'
+c      i = ifeffit('newplot(mudata.r, mudata.chir_mag,')
+c      i = ifeffit('title=\'|\\gx(R)| vs R\',ylabel=\'|\\gx(R)|\',')
+c      i = ifeffit('xlabel=\' R (\\A) \',')
+c      i = ifeffit('style=solid,color=blue)')
+c      i = ifeffit('plot(feffit.r, feffit.chir_mag,style=dashed,')
+c      i = ifeffit('color=red)')
+cccccccccccccccccccccccccccccc
+d601 1
+a601 9
+c      write(*,*)'hit any key to go to the next energy...'
+c      read(*,*),rubbish
+
+      if (run_num.LT.num_e_runs) then
+         write(*,*)'Going to the next energy'
+      end if
+
+
+      
+d644 1
+a644 7
+     &               1000*slice(mudata_l2.dchi,min_ind,max_ind)')
+
+
+      i = ifeffit('fit_l.k=
+     &               slice(fit_l2.k,min_ind,max_ind)')
+      i = ifeffit('fit_l.chik_w=
+     &               slice(fit_l2.chik_w,min_ind,max_ind)')
+d646 3
+d653 2
+a654 1
+      i = ifeffit('norm=1/vsum(1/mudata_l.dchi^2)')
+d664 1
+a664 1
+      i = ifeffit('show nr_chi2')
+d667 3
+a669 2
+      i = ifeffit('newplot(mudata_l.k,mudata_l.chik_w)')
+      i = ifeffit('plot(mudata_l.k,fit_l.chik_w)')
+a679 5
+c --------------------------------------------------------------------
+c     Now I need to save the current data in fortran and continue
+c     through the loop
+
+      i = ifeffit('m_dr=i_dr, m_rmin=i_rmin, m_rmax=i_rmax')
+a680 89
+c     chi array of the fitted data
+      m = iffgetarr('fit.chi',tmp)
+      do 80 j=1,m,1
+         chi_th2(run_num,j)=tmp(j)
+ 80   continue
+      m = iffgetarr('mudata.chi',tmp)
+      do 82 j=1,m,1
+         chi_exp2(run_num,j)=tmp(j)
+ 82   continue
+
+c     k array
+      m = iffgetarr('mudata.k',tmp)
+      klength=m
+      do 84 j=1,m,1
+         k2(run_num,j)=tmp(j)
+ 84   continue
+
+c     q array
+      m = iffgetarr('fit.q',tmp)
+      qlength=m
+      do 85 j=1,m,1
+         q2(run_num,j)=tmp(j)
+ 85   continue
+
+c     bkg array
+      m = iffgetarr('mudata.bkg',tmp)
+      do 86 j=1,m,1
+         bkg2(run_num,j)=tmp(j)
+ 86   continue
+
+c     fitted e0 value
+      i = ifeffit('e0_final=e0+e0_cor')
+      m = iffgetsca('e0_final',e0_cor2(run_num))
+
+c     r_peak value
+      r_peak_exp2(run_num)=r_peak_exp
+      r_peak_th2(run_num)=r_peak_th
+
+c     chi(r) arrays
+
+      m = iffgetarr('mudata.chir_mag',tmp)
+      do 100 j=1,m,1
+         chir_exp2(run_num,j)=tmp(j)
+ 100  continue
+      m = iffgetarr('fit.chir_mag',tmp)
+      do 102 j=1,m,1
+         chir_th2(run_num,j)=tmp(j)
+ 102  continue
+
+c     r array
+      m = iffgetarr('fit.r',tmp)
+      rlength=m
+      do 104 j=1,m,1
+         r2(run_num,j)=tmp(j)
+ 104  continue
+
+c     Windowed chi(q) array
+      m = iffgetarr('mudata.chiq_w',tmp)
+      do 106 j=1,m,1
+         chiq_exp2(run_num,j)=tmp(j)
+ 106  continue
+      m = iffgetarr('fit.chiq_w',tmp)
+      do 108 j=1,m,1
+         chiq_th2(run_num,j)=tmp(j)
+ 108  continue
+
+c     r and k windows
+c     r window for the amplitude and phase calculations
+      m = iffgetarr('mudata.aprwin',tmp)
+      do 110 j=1,m,1
+         aprwin2(run_num,j)=tmp(j)
+ 110  continue
+c     r window for R space chi Fourier filtering
+      m = iffgetarr('mudata.rwin2',tmp)
+      do 111 j=1,m,1
+         rwindow2(run_num,j)=tmp(j)
+ 111  continue
+      m = iffgetarr('mudata.kwin2',tmp)
+      do 112 j=1,m,1
+         kwindow2(run_num,j)=tmp(j)
+ 112  continue
+
+c     debye waller temp, theta
+      m = iffgetsca('theta',theta2(run_num))
+
+c     alpha- coeff of thermal expansion
+      m = iffgetsca('alpha',alpha2(run_num))
+
+      end do !energy runs end of do loop 
+a686 428
+c --------------------------------------------------------------------
+c     Now it is time to do something with all this data
+
+c     linear average
+      write(*,*)'Calculating averages over energies'
+      do 125 j=1,1000,1
+         ave_chir_exp(j)=0
+         ave_chir_th(j)=0
+         ave_chi_exp(j)=0
+         ave_chi_th(j)=0
+         do 120 k=1,num_e_runs,1
+            ave_chir_exp(j)=ave_chir_exp(j)+chir_exp2(k,j)
+            ave_chir_th(j)=ave_chir_th(j)+chir_th2(k,j)
+            ave_chi_exp(j)=ave_chi_exp(j)+chi_exp2(k,j)
+            ave_chi_th(j)=ave_chi_th(j)+chi_th2(k,j)
+ 120     continue
+         ave_chir_exp(j)=ave_chir_exp(j)/num_e_runs
+         ave_chir_th(j)=ave_chir_th(j)/num_e_runs
+         ave_chi_exp(j)=ave_chi_exp(j)/num_e_runs
+         ave_chi_th(j)=ave_chi_th(j)/num_e_runs
+ 125  continue
+
+c     Minimum and Maximum values at each point
+      write(*,*)'calculating max and mins'
+      do 128 j=1,1000,1
+         minchir_exp(j)=chir_exp2(1,j)
+         maxchir_exp(j)=chir_exp2(1,j)
+         minchir_th(j)=chir_th2(1,j)
+         maxchir_th(j)=chir_th2(1,j)
+         minchi_exp(j)=chi_exp2(1,j)
+         maxchi_exp(j)=chi_exp2(1,j)
+         minchi_th(j)=chi_th2(1,j)
+         maxchi_th(j)=chi_th2(1,j)
+         do 126 k=2,num_e_runs,1
+            if (chir_exp2(k,j).LT.minchir_exp(j)) then
+               minchir_exp(j)=chir_exp2(k,j)
+            end if
+            if (chir_exp2(k,j).GT.maxchir_exp(j)) then
+               maxchir_exp(j)=chir_exp2(k,j)
+            end if
+            if (chir_th2(k,j).LT.minchir_th(j)) then
+               minchir_th(j)=chir_th2(k,j)
+            end if
+            if (chir_th2(k,j).GT.maxchir_th(j)) then
+               maxchir_th(j)=chir_th2(k,j)
+            end if
+            if (chi_exp2(k,j).LT.minchi_exp(j)) then
+               minchi_exp(j)=chi_exp2(k,j)
+            end if
+            if (chi_exp2(k,j).GT.maxchi_exp(j)) then
+               maxchi_exp(j)=chi_exp2(k,j)
+            end if
+            if (chi_th2(k,j).LT.minchi_th(j)) then
+               minchi_th(j)=chi_th2(k,j)
+            end if
+            if (chi_th2(k,j).GT.maxchi_th(j)) then
+               maxchi_th(j)=chi_th2(k,j)
+            end if
+ 126     continue
+ 128  continue
+
+c     Maximum deviation error
+      write(*,*)'calculating errors'
+      do 135 j=1,1000,1
+         dchir_exp(j)=0
+         dchir_th(j)=0
+         dchi_exp(j)=0
+         dchi_th(j)=0
+         
+         do 130 k=1,num_e_runs,1
+            new_error= dabs(chir_exp2(k,j)-ave_chir_exp(j))
+            if (new_error > dchir_exp(j)) then
+               dchir_exp(j)=new_error
+            end if
+            new_error= dabs(chir_th2(k,j)-ave_chir_th(j))
+            if (new_error > dchir_th(j)) then
+               dchir_th(j)=new_error
+            end if
+            new_error= dabs(chi_exp2(k,j)-ave_chi_exp(j))
+            if (new_error > dchi_exp(j)) then
+               dchi_exp(j)=new_error
+            end if
+            new_error= dabs(chi_th2(k,j)-ave_chi_th(j))
+            if (new_error > dchi_th(j)) then
+               dchi_th(j)=new_error
+            end if
+ 130     continue
+ 135  continue
+
+c     Let's check that all the k, r and q arrays are equal
+c     THEY SHOULD BE- except maybe at the ends where different
+c     analyses could have edge effects
+      write(*,*)'checking equality of arrays'
+      do 140 j=1,1000,1
+         do 139 k=1,(num_e_runs-1),1
+            if ((q2(k,j)-q2(k+1,j)).GT.1.0d-5) then
+               write(*,*)'Q arrays differ at k=',k,' and j=',j
+            end if
+            if ((k2(k,j)-k2(k+1,j)).GT.1.0d-5) then
+               write(*,*)'k arrays differ at k=',k,' and j=',j
+               write(*,*)'k2(',k,',',j,')= ',k2(k,j)
+               write(*,*)'k2(',k+1,',',j,')= ',k2(k+1,j)
+            end if
+            if ((r2(k,j)-r2(k+1,j)).GT.1.0d-5) then
+               write(*,*)'R array is stuffed at k=',k,' and j=',j
+            end if
+ 139     continue
+ 140  continue
+
+c     Now I should put these arrays back into ifeffit space
+c     and plot them
+      i = iffputarr('mudata.ave_chir',rlength,ave_chir_exp)
+      i = iffputarr('feffit.ave_chir',rlength,ave_chir_th)
+      i = iffputarr('mudata.ave_chi',klength,ave_chi_exp)
+      i = iffputarr('feffit.ave_chi',klength,ave_chi_th)
+      i = iffputarr('mudata.dchir',rlength,dchir_exp)
+      i = iffputarr('feffit.dchir',rlength,dchir_th)
+      i = iffputarr('mudata.dchi',klength,dchi_exp)
+      i = iffputarr('feffit.dchi',klength,dchi_th)
+
+      i = iffputarr('mudata.min_chir',rlength,minchir_exp)
+      i = iffputarr('feffit.min_chir',rlength,minchir_th)
+      i = iffputarr('mudata.min_chi',klength,minchi_exp)
+      i = iffputarr('feffit.min_chi',klength,minchi_th)
+      i = iffputarr('mudata.max_chir',rlength,maxchir_exp)
+      i = iffputarr('feffit.max_chir',rlength,maxchir_th)
+      i = iffputarr('mudata.max_chi',klength,maxchi_exp)
+      i = iffputarr('feffit.max_chi',klength,maxchi_th)
+
+
+c     ---------------------------------------------------------
+c     Let's start plotting...
+c     Plot the theoretical fitted chi(k) in k space with error
+c     bars.  Also plot the experimental curve.
+      write(*,*)'Plotting theoretical(solid) and' 
+      write(*,*)'exp(dashed) chi(k) vs k'
+      i = ifeffit('newplot(mudata.k,mudata.ave_chi,')
+      i = ifeffit('title=\'\\gx(k) vs k\',')
+      i = ifeffit('xmin=0,xmax=15,color=blue,')
+      i = ifeffit('ylabel=\'\\gx(k)\',')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=dashed)')
+      i = ifeffit('plot(feffit.ave_chi, style=solid, color=red,')
+      i = ifeffit('dy=feffit.dchi)')
+c     also overplot the window function-dotted
+      i = ifeffit('plot(mudata.kwin2, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_k_th_errors.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_k_th_errors.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+
+c     Plot the experimental chi(k) in k space with error
+c     bars.
+      write(*,*)'Plotting exp(solid) chi(k) vs k'
+      i = ifeffit('newplot(mudata.k,mudata.ave_chi,')
+      i = ifeffit('title=\'\\gx(k) vs k\',')
+      i = ifeffit('xmin=0,xmax=15,color=blue,')
+      i = ifeffit('ylabel=\'\\gx(k)\', dy=mudata.dchi,')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+c     also overplot the window function-dotted
+      i = ifeffit('plot(mudata.kwin2, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_k_exp_errors.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_k_exp_errors.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+
+c     Plot the theoretical fitted chi(k) in k space with max and min
+c     lines.  Also plot the experimental curve.
+      write(*,*)'Plotting theoretical(solid) and' 
+      write(*,*)'exp(dashed) chi(k) vs k'
+      i = ifeffit('newplot(mudata.k,mudata.ave_chi,')
+      i = ifeffit('title=\'\\gx(k) vs k\',')
+      i = ifeffit('xmin=0,xmax=15,color=blue,')
+      i = ifeffit('ylabel=\'\\gx(k)\',')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=dashed)')
+      i = ifeffit('plot(feffit.ave_chi, style=solid, color=red)')
+      i = ifeffit('plot(feffit.max_chi,style=solid,color=red)')
+      i = ifeffit('plot(feffit.min_chi,style=solid,color=red)')
+c     also overplot the window function-dotted
+      i = ifeffit('plot(mudata.kwin2, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_k_th_errors2.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_k_th_errors2.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+
+c     Plot the experimental chi(k) in k space with max and min lines.
+      write(*,*)'Plotting exp(solid) chi(k) vs k'
+      i = ifeffit('newplot(mudata.k,mudata.ave_chi,')
+      i = ifeffit('title=\'\\gx(k) vs k\',')
+      i = ifeffit('xmin=0,xmax=15,color=blue,')
+      i = ifeffit('ylabel=\'\\gx(k)\',')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+      i = ifeffit('plot(mudata.max_chi,style=solid,color=blue)')
+      i = ifeffit('plot(mudata.min_chi,style=solid,color=blue)')
+c     also overplot the window function-dotted
+      i = ifeffit('plot(mudata.kwin2, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_k_exp_errors2.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_k_exp_errors2.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+c----------------------
+c     Plot the 3 theoretical chi(k) in k space and the one experimental
+c     curve
+      write(*,*)'Plotting exp(solid) and 3 theories dashed chi(k) vs k'
+      i = ifeffit('newplot(mudata.k,mudata.ave_chi,')
+      i = ifeffit('title=\'\\gx(k) vs k\',ymax=0.3,ymin=-0.2,')
+      i = ifeffit('xmin=0,xmax=15,color=blue,')
+      i = ifeffit('ylabel=\'\\gx(k)\',')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+
+      do 250 j=1,num_e_runs,1
+         do 247 k=1,klength,1
+            tmp(k)=chi_th2(j,k)
+ 247     continue
+         i = iffputarr('mudata.chikplot',klength,tmp)
+         i = ifeffit('plot(mudata.chikplot,style=dashed,color=red)')
+ 250  continue
+
+c     also overplot the window function-dotted
+      i = ifeffit('mudata.kwinb=0.25*mudata.win')
+      i = ifeffit('plot(mudata.kwinb, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_k_th3plots.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_k_th3plots.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+c------------------------
+c     Plot the theoretical fitted chi(R) in R space with error
+c     bars.  Also plot the experimental curve.
+      write(*,*)'Plotting theoretical(solid) and' 
+      write(*,*)'exp(dashed) |chi(R)| vs R'
+      i = ifeffit('newplot(mudata.r,mudata.ave_chir,')
+      i = ifeffit('title=\'|\\gx(R)| vs R\',ylabel=\'|\\gx(R)|\',')
+      i = ifeffit('xlabel=\' R (\\A) \',xmin=0,xmax=8,')
+      i = ifeffit('style=dashed,color=blue)')
+      i = ifeffit('plot(feffit.ave_chir, style=solid, color=red,')
+      i = ifeffit('dy=feffit.dchir)')
+c     also overplot the window function dotted
+      i = ifeffit('rwindow')
+      i = ifeffit('plot(mudata.rwin2, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_r_th_errors.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_r_th_errors.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+c---------------------
+
+c     Plot the 3 theoretical fitted chi(R) in R space.  
+c     Also plot the three experimental curves.
+      write(*,*)'Plotting 3 normalised theoretical(dashed) and' 
+      write(*,*)'exp(solid) |chi(R)| vs R'
+
+      max_chir=0.d0
+      do 142 k=1,rlength,1
+         if (chir_exp2(1,k).GT.max_chir) then
+            max_chir=chir_exp2(1,k)
+         end if
+ 142  continue
+      do 143 k=1,rlength,1
+         tmp(k)=chir_exp2(1,k)/max_chir
+         tmp2(k)=chir_th2(1,k)/max_chir
+ 143  continue
+      write(*,*)'the maximum |chi(r)| value for k=1 is ',max_chir
+      i = iffputarr('mudata.chirplot',rlength,tmp)
+      i = iffputarr('feffit.chirplot',rlength,tmp2)
+      i = ifeffit('newplot(mudata.r,mudata.chirplot*mudata.rwin,')
+      i = ifeffit('title=\'|\\gx(R)| vs R\',ylabel=\'|\\gx(R)|\',')
+      i = ifeffit('xlabel=\' R (\\A) \',xmin=1,xmax=6,')
+      i = ifeffit('style=solid,color=blue)')
+      i = ifeffit('plot(feffit.r,feffit.chirplot*mudata.rwin,')
+      i = ifeffit('style=dashed,color=red)')
+c     also overplot the window function dotted
+      i = ifeffit('rwindow')
+      i = ifeffit('plot(mudata.rwin*1.05, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_r_th_norm1.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_r_th_norm1.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+
+      if (num_e_runs.GT.1) then
+      max_chir=0.d0
+      do 144 k=1,rlength,1
+         if (chir_exp2(2,k).GT.max_chir) then
+            max_chir=chir_exp2(2,k)
+         end if
+ 144  continue
+      do 145  k=1,rlength,1
+         tmp(k)=chir_exp2(2,k)/max_chir
+         tmp2(k)=chir_th2(2,k)/max_chir
+ 145  continue
+      write(*,*)'the maximum |chi(r)| value for k=2 is ',max_chir
+      i = iffputarr('mudata.chirplot',rlength,tmp)
+      i = iffputarr('feffit.chirplot',rlength,tmp2)
+      i = ifeffit('newplot(mudata.r,mudata.chirplot*mudata.rwin,')    
+      i = ifeffit('style=solid,color=blue,xmin=1,xmax=6)')
+      i = ifeffit('plot(feffit.r,feffit.chirplot*mudata.rwin,')
+      i = ifeffit('style=dashed,color=red)')
+c     also overplot the window function dotted
+      i = ifeffit('rwindow')
+      i = ifeffit('plot(mudata.rwin*1.05, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_r_th_norm2.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_r_th_norm2.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+
+      max_chir=0.d0
+      do 146 k=1,rlength,1
+         if (chir_exp2(3,k).GT.max_chir) then
+            max_chir=chir_exp2(3,k)
+         end if
+ 146  continue
+      do 147  k=1,rlength,1
+         tmp(k)=chir_exp2(3,k)/max_chir
+         tmp2(k)=chir_th2(3,k)/max_chir
+ 147  continue
+      write(*,*)'the maximum |chi(r)| value for k=3 is ',max_chir
+      i = iffputarr('mudata.chirplot',rlength,tmp)
+      i = iffputarr('feffit.chirplot',rlength,tmp2)
+      i = ifeffit('newplot(mudata.r,mudata.chirplot*mudata.rwin,')
+      i = ifeffit('style=solid,color=blue,xmin=1,xmax=6)')
+      i = ifeffit('plot(feffit.r,feffit.chirplot*mudata.rwin,')
+      i = ifeffit('style=dashed,color=red)')
+c     also overplot the window function dotted
+      i = ifeffit('rwindow')
+      i = ifeffit('plot(mudata.rwin*1.05, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_r_th_norm3.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_r_th_norm3.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+      end if
+c--------------------------------
+
+c     Plot the experimental  chi(R) in R space with error bars.
+      write(*,*)'Plotting exp(solid) |chi(R)| vs R'
+      i = ifeffit('newplot(mudata.r,mudata.ave_chir,')
+      i = ifeffit('title=\'|\\gx(R)| vs R\',ylabel=\'|\\gx(R)|\',')
+      i = ifeffit('xlabel=\' R (\\A) \',xmin=0,xmax=8,')
+      i = ifeffit('style=solid,color=blue,dy=mudata.dchir)')
+c     also overplot the window function dotted
+      i = ifeffit('plot(mudata.rwin2, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_r_exp_errors.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_r_exp_errors.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+
+
+c     Plot the theoretical fitted chi(R) in R space with error
+c     given by max and min lines.  Also plot the experimental curve.
+      write(*,*)'Plotting theoretical(solid) and' 
+      write(*,*)'exp(dashed) |chi(R)| vs R'
+      i = ifeffit('newplot(mudata.r,mudata.ave_chir,')
+      i = ifeffit('title=\'|\\gx(R)| vs R\',ylabel=\'|\\gx(R)|\',')
+      i = ifeffit('xlabel=\' R (\\A) \',xmin=0,xmax=8,')
+      i = ifeffit('style=dashed,color=blue)')
+c     Plot three plots rather than one with error bars 
+      i = ifeffit('plot(feffit.ave_chir, style=solid, color=red)')
+      i = ifeffit('plot(feffit.max_chir,style=solid,color=red)')
+      i = ifeffit('plot(feffit.min_chir,style=solid,color=red)')
+c     also overplot the window function dotted
+      i = ifeffit('rwindow')
+      i = ifeffit('plot(mudata.rwin2, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_r_th_errors2.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_r_th_errors2.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+
+c     Plot the experimental chi(R) in R space with errors
+c     given by max and min plots.  
+      write(*,*)'Plotting exp(solid) |chi(R)| vs R'
+c     Plot three plots rather than one with error bars
+      i = ifeffit('newplot(mudata.r,mudata.ave_chir,')
+      i = ifeffit('title=\'|\\gx(R)| vs R\',ylabel=\'|\\gx(R)|\',')
+      i = ifeffit('xlabel=\' R (\\A) \',xmin=0,xmax=8,')
+      i = ifeffit('style=solid,color=blue)')  
+      i = ifeffit('plot(mudata.max_chir,style=solid,color=blue)')
+      i = ifeffit('plot(mudata.min_chir,style=solid,color=blue)')
+c     also overplot the window function dotted
+      i = ifeffit('plot(mudata.rwin2, style=dotted, color=black)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'chi_r_exp_errors2.ps\'.'
+      i = ifeffit('plot(device="/ps",file="chi_r_exp_errors2.ps")')
+      call print_echo
+c      write(*,*)'Hit any key to go on to the next plot:'
+c      read(*,*),rubbish
+
+a687 60
+c----------------------------------------------------------------------
+c     linear average  
+      write(*,*)'Calculating the average of E0,r_peak,theta+alpha'    
+      ave_e0_final=0
+      ave_r_peak_exp=0
+      ave_r_peak_th=0
+      ave_theta=0
+      ave_alpha=0
+      do 160 j=1,num_e_runs,1
+         ave_e0_final=ave_e0_final+e0_cor2(j)
+         ave_r_peak_exp=ave_r_peak_exp+r_peak_exp2(j)
+         ave_r_peak_th=ave_r_peak_th+r_peak_th2(j)
+         ave_theta=ave_theta+theta2(j)
+         ave_alpha=ave_alpha+alpha2(j)
+ 160  continue
+      ave_e0_final=ave_e0_final/num_e_runs
+      ave_r_peak_exp=ave_r_peak_exp/num_e_runs
+      ave_r_peak_th=ave_r_peak_th/num_e_runs
+      ave_theta=ave_theta/num_e_runs
+      ave_alpha=ave_alpha/num_e_runs
+
+c     Maximum deviation error
+      write(*,*)'Calculating E0,r_peak,theta+alpha erros'
+      de0_final=0
+      dr_peak_exp=0
+      dr_peak_th=0
+      dtheta=0
+      dalpha=0
+      do 165 j=1,num_e_runs,1
+         new_error=dabs(e0_cor2(j)-ave_e0_final)
+         if (new_error > de0_final) then
+            de0_final=new_error
+         end if
+         new_error=dabs(r_peak_exp2(j)-ave_r_peak_exp)
+         if (new_error > dr_peak_exp) then
+            dr_peak_exp=new_error
+         end if
+         new_error=dabs(r_peak_th2(j)-ave_r_peak_th)
+         if (new_error > dr_peak_th) then
+            dr_peak_th=new_error
+         end if
+         new_error=dabs(theta2(j)-ave_theta)
+         if (new_error > dtheta) then
+            dtheta=new_error
+         end if
+         new_error=dabs(alpha2(j)-ave_alpha)
+         if (new_error > dalpha) then
+            dalpha=new_error
+         end if
+ 165  continue
+
+      write(*,*)'The final E0=(',ave_e0_final,' +/-',de0_final,') eV'
+      write(*,*)'The 1st peak in R space for the experimental data'
+      write(*,*)'occurs at R=(',ave_r_peak_exp,' +/-',dr_peak_exp,') A'
+      write(*,*)'The 1st peak in R space for the theoretical fit data'
+      write(*,*)'occurs at R=(',ave_r_peak_th,' +/-',dr_peak_th,') A'
+      write(*,*)'The Debye-Waller Temp theta=(',ave_theta,
+     &     ' +/-',dtheta,') K'
+      write(*,*)'The coeff of thermal expansion, alpha=(',ave_alpha,
+     &     ' +/-',dalpha,')'
+@
+
+
+1.2
+log
+@*** empty log message ***
+@
+text
+@d426 1
+a426 1
+      fit_space=2      
+d433 1
+a433 1
+      read(*,*),fit_space
+d503 13
+d517 2
+d520 1
+d522 12
+d535 15
+d552 19
+d582 15
+d598 2
+a599 1
+      call print_echo
+d646 16
+a662 1
+      call print_echo
+d787 3
+a789 3
+      i = iffputarr('myint.k',kpoints_int,interp_k)
+      i = iffputarr('myint.chi',kpoints_int,interp_chi)
+      i = iffputarr('myint.dchi',kpoints_int,interp_dchi)
+d800 5
+d808 15
+d824 27
+d853 9
+d876 4
+d894 12
+d939 26
+d1020 9
+d1030 4
+d1036 2
+d1100 6
+d1107 2
+d1462 1
+a1462 1
+     &               slice(mudata_l2.dchi,min_ind,max_ind)')
+d1477 1
+a1477 1
+     & vsum((mudata_l.res/mudata_l.dchi)^2)*(max_ind-min_ind-19)')
+a1490 1
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@a502 13
+         
+c     Plot the raw mu data
+      i = ifeffit('newplot(mudata.energy,mudata.xmu,')
+      i = ifeffit('style=points1, color=blue,')
+      i = ifeffit('title=\' [\\gm/\\gr] vs E\',xlabel=\'E (eV)\',')
+      i = ifeffit('ylabel=\' [\\gm/\\gr] (cm\\u2\\d/g) \',')
+      i = ifeffit('xmin=19500,xmax=21000)')
+         
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'mu_v_energy.ps\'.'
+      i = ifeffit('plot(device="/ps",file="mu_v_energy.ps")')
+      call print_echo
+a503 2
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+a504 1
+c     Plot the pre-edge background function:
+a505 29
+      i = ifeffit('newplot(mudata.energy,mudata.xmu,')
+      i = ifeffit('style=solid, color=blue,')
+      i = ifeffit('title=\' [\\gm/\\gr] vs E\',xlabel=\'E (eV)\',')
+      i = ifeffit('ylabel=\' [\\gm/\\gr] (cm\\u2\\d/g) \')')
+      i = ifeffit('plot(mudata.preedge,style=dashed,')
+      i = ifeffit('color=red)')
+         
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'pre_edgea.ps\'.'
+      i = ifeffit('plot(device="/ps",file="pre_edgea.ps")')
+      call print_echo
+
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+
+c     Plot the pre-edge function function:
+      i = ifeffit('mudata.preedge=mudata.xmu-mudata.pre')
+      i = ifeffit('newplot(mudata.energy,mudata.pre,')
+      i = ifeffit('style=solid, color=blue,')
+      i = ifeffit('title=\' [\\gm/\\gr]\\dedge\\u vs E\',')
+      i = ifeffit('xlabel=\'E (eV)\',')
+      i = ifeffit('ylabel=\' [\\gm/\\gr]\\dedge\\u(cm\\u2\\d/g) \')')
+         
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'ifeffit_autobk_error.ps\'.'
+      i = ifeffit('plot(device="/ps",file="ifeffit_autobk_error.ps")')
+      call print_echo
+a506 14
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+      
+c     Plot the pre-edge subtracted from the experimental data:
+      i = ifeffit('newplot(mudata.energy,mudata.pre,')
+      i = ifeffit('style=solid, color=blue,')
+      i = ifeffit('title=\' [\\gm/\\gr]\\dedge\\u vs E\',')
+      i = ifeffit('xlabel=\'E (eV)\',')
+      i = ifeffit('ylabel=\' [\\gm/\\gr]\\dedge\\u (cm\\u2\\d/g) \')')
+      
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'pre_suba.ps\'.'
+      i = ifeffit('plot(device="/ps",file="pre_suba.ps")')
+a508 3
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+
+d520 1
+a520 14
+c     Plot the spline:
+      i = ifeffit('newplot(x=mudata.energy,y=mudata.pre)')
+      i = ifeffit('plot(mudata.energy, mudata.bkg,')
+      i = ifeffit('title=\' [\\gm/\\gr] vs E\',xlabel=\'E (eV)\',')
+      i = ifeffit('ylabel=\' [\\gm/\\gr] (cm\\u2\\d/g) \',')
+      i = ifeffit('xmin=(&e0_guess-200),')
+      i = ifeffit('xmax=(&e0_guess+800),style=dashed)')
+c      i = ifeffit('plot(mudata.gpre,style=dotted)')
+      write(*,*)'Spline has been plotted.'
+      
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'spline_new.ps\'.'
+      i = ifeffit('plot(device="/ps",file="spline_new.ps")')
+a522 3
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+
+d568 1
+a568 12
+c     Now plot both the chi from the spline and the gchi:
+      write(*,*)'Plotting chi vs k and gchi (Grant\'s chi) vs k'
+      i = ifeffit('newplot(mudata.k, mudata.chi, style=points20,')
+      i = ifeffit('title=\' \\gx(k) vs k\',ylabel=\'\\gx(k)\',')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \')')
+      i = ifeffit('plot(mudata.k,mudata.chi,style=solid)')
+      i = ifeffit('plot(mudata.gk,mudata.gchi,style=points5)')
+ 
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'my_chi.ps\'.'
+      i = ifeffit('plot(device="/ps",file="my_chi.ps")')
+a570 4
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+
+
+a709 24
+      i = ifeffit('newplot(myint.k,myint.chi,style=points5,')
+      i = ifeffit('title=\' \\gx(k) vs k\',')
+      i = ifeffit('ylabel=\' \\gx(k)\')')
+c      i = ifeffit('dy=myint.dchi)')
+      i = ifeffit('plot(mudata.gk, mudata.gchi,style=points5)')
+c      i = ifeffit('plot(myint.k,myint.dchi,style=points1,color=black)')
+      write(*,*)'look at that...'
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'myinterp1.ps\'.'
+      i = ifeffit('plot(device="/ps",file="myinterp1.ps")')
+      call print_echo 
+
+
+      i = ifeffit('newplot(mudata.gk,mudata.gchi,style=points5,')
+      i = ifeffit('title=\' \\gx(k) vs k\',')
+      i = ifeffit('ylabel=\' \\gx(k)\')')
+c      i = ifeffit('dy=myint.dchi)')
+      i = ifeffit('plot(myint.k, myint.chi,style=points20)')
+      i = ifeffit('plot(myint.k, myint.chi,style=solid,')
+      i = ifeffit('color=red)')
+c      i = ifeffit('plot(myint.k,myint.dchi,style=points1,color=black)')
+      write(*,*)'look at that...'
+a710 16
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'myinterp1a.ps\'.'
+      i = ifeffit('plot(device="/ps",file="myinterp1a.ps")')
+      call print_echo
+
+
+      i=ifeffit('newplot(myint.k,myint.chi,style=solid,color=blue,')
+      i = ifeffit('title=\' \\gx(k) vs k\',')
+      i = ifeffit('ylabel=\'\\gx(k)\',')
+      i=ifeffit('dy=myint.dchi)')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'myinterp2.ps\'.'
+      i = ifeffit('plot(device="/ps",file="myinterp2.ps")')
+a712 9
+      i = ifeffit('newplot(myint.k,myint.dchi,')
+      i = ifeffit('title=\' d\\gx(k) vs k\',')
+      i = ifeffit('ylabel=\' d\\gx(k) \')')
+
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'myinterpe.ps\'.'
+      i = ifeffit('plot(device="/ps",file="myinterpe.ps")')
+      call print_echo
+a740 14
+c        Plot the results of the background removal
+         write(*,*)'Plotting chi vs k'
+         i = ifeffit('newplot(mudata.k, mudata.chi, style=solid,')
+         i = ifeffit('title=\' \\gx(k) vs k\',ylabel=\'\\gx(k)\',')
+         i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \')')
+
+c        Save this plot
+         write(*,*)'This plot has been saved as'
+         write(*,*)'\'chi_vs_k_expt.ps\'.'
+         i = ifeffit('plot(device="/ps",file="chi_vs_k_expt.ps")')
+         call print_echo      
+
+c         write(*,*)'hit any key to go on...'
+c         read(*,*),rubbish
+a773 13
+         i = ifeffit('newplot(mudata.k, mudata.chik_w, color=blue,')
+         i = ifeffit('title=\'k\\u3\\d\\gx(k)(windowed) vs k\',')
+         i = ifeffit('ylabel=\'k\\u3\\d\\gx(k)\',xmin=xmin_k,')
+         i = ifeffit('xmax=xmax_k,')
+         i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+c        also plot the window function-dotted
+      i = ifeffit('mudata.kwina=mudata.win*(ceil(mudata.chik_w)*1.05)')
+         i = ifeffit('plot(mudata.kwina, style=dotted, color=black)')
+
+c        Save this plot
+         write(*,*)'This plot has been saved as'
+         write(*,*)'\'win_kweight_chi.ps\'.'
+         i = ifeffit('plot(device="/ps",file="win_kweight_chi.ps")')
+a775 18
+c         write(*,*)'hit any key to go on...'
+c         read(*,*),rubbish
+
+c        Plot the results
+         write(*,*)'Plotting |chi(R)| vs R'
+         i = ifeffit('newplot(mudata.r, mudata.chir_mag,')
+         i = ifeffit('title=\'|\\gx(R)| vs R\',ylabel=\'|\\gx(R)|\',')
+         i = ifeffit('xlabel=\' R (\\A) \')')
+
+c        Save this plot
+         write(*,*)'This plot has been saved as'
+         write(*,*)'\'fft_kweight_chi.ps\'.'
+         i = ifeffit('plot(device="/ps",file="fft_kweight_chi.ps")')
+         call print_echo
+
+c         write(*,*)'hit any key to go on...'
+c         read(*,*),rubbish
+
+a828 9
+      write(*,*)'Plotting windowed chi(k) vs k'
+      write(*,*)'Fourier filtered Q space chi(Q) dashed black'
+      i = ifeffit('newplot(mudata.k,mudata.chik_w,xmin=xmin_k,')
+      i = ifeffit('title=\'k\\u3\\d\\gx(k)(windowed) vs k\',')
+      i = ifeffit('ylabel=\'k\\u3\\d\\gx(k)\',xmax=xmax_k,')
+      i = ifeffit('xlabel=\' k (\\A\\u-1\\d) \', style=solid)')
+c      i = ifeffit('plot(mudata.q, mudata.chiq_re)')
+      i = ifeffit('plot(mudata.q, mudata.chiq_w, style=dashed)')
+      i = ifeffit('plot(mudata.kwina, style=dotted, color=black)')
+a829 4
+c     Save this plot
+      write(*,*)'This plot has been saved as'
+      write(*,*)'\'win_kweight_chi_filter.ps\'.'
+      i = ifeffit('plot(device="/ps",file="win_kweight_chi_filter.ps")')
+a831 2
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+a893 6
+c     Plot the results
+      write(*,*)'Plotting FEFF (theoretical) chi(R) vs R'
+      write(*,*)'from ff2chi (i.e. without fitting)'
+      i = ifeffit('newplot(feff.r, feff.chir_mag, color=green,')
+      i = ifeffit('title=\'|\\gx(R)| vs R\',ylabel=\'|\\gx(R)|\',')
+      i = ifeffit('xlabel=\' R (\\A) \')')
+a894 2
+c      write(*,*)'hit any key to go on...'
+c      read(*,*),rubbish
+d1248 1
+a1248 1
+     &               1000*slice(mudata_l2.dchi,min_ind,max_ind)')
+d1263 1
+a1263 1
+     & vsum((mudata_l.res/mudata_l.dchi)^2)*norm')
+d1277 1
+@

@@ -1,0 +1,16 @@
+ kweight        =       0.000000000
+ kmin           =       3.700000000
+ kmax           =      13.000000000
+ dk             =       0.300000000
+ rmin           =       1.600000000
+ rmax           =       5.300000000
+ dr             =       0.300000000
+ chi_square     =   23728.339951945
+ chi_reduced    =      95.889654573
+ epsilon_k      =       0.000765564
+  scalar  mychi_square  not found
+  scalar  mychi_reduced  not found
+ e0_cor         =    -11.04769314 +/-      0.32746704
+ alpha          =      0.00419110 +/-      0.00086057
+ theta          =    370.46809235 +/-     17.78627555
+ s02            =      1.15439076 +/-      0.05517886

@@ -1,0 +1,28 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2004.10.26.05.09.51;	author lucasfs;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@c{maxpts.h  -*-fortran-*- 
+         integer  maxpts, maxsize_array
+         parameter(maxsize_array =  8192)
+         parameter(maxpts = maxsize_array)
+c}
+@

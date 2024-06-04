@@ -1,0 +1,33 @@
+head	1.1;
+access;
+symbols;
+locks; strict;
+comment	@ * @;
+
+
+1.1
+date	2004.10.26.05.09.51;	author lucasfs;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@c{compat.h  -*-fortran-*-
+c  used so setsca/getsca works with libxafs for autobk,diffkk,feff6, etc.
+c  values for scalars
+       integer          mxsca
+       parameter       (mxsca=512)
+       double precision sscaval(mxsca)
+       character*96     sscanam(mxsca), snamtmp
+       common /sca_dp/  sscaval
+       common /sca_ch/  sscanam, snamtmp
+c}
+@

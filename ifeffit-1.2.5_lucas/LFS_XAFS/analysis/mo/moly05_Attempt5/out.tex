@@ -1,0 +1,44 @@
+\documentclass{article}
+\usepackage{lscape}
+\begin{document}
+\begin{landscape}
+\begin{table}[ht]
+\centering
+\begin{tabular}{c||c|c|c||c|c|c||c|c|c}
+\hline
+&\multicolumn{3}{|c}{Unwindowed $k^{0}$ fit}&\multicolumn{3}{|c}{Windowed (8 peaks) $k^{0}$ fit}&\multicolumn{3}{|c}{Windowed (7 peaks) $k^{0}$ fit}\\
+& value & $\sigma_{min}$ & $\sigma_{max}$& value & $\sigma_{min}$ & $\sigma_{max}$& value & $\sigma_{min}$ & $\sigma_{max}$\\
+\hline
+$\chi^2$   & 6.16e+06 & & & 6.91e+04 & & & 1.41e+04 & & \\
+$\chi^2_r$ & 1.67e+04 & & & 2.27e+02 & & & 5.70e+01 & & \\
+\hline
+$E_{0,corr} (eV)$& 0 & 0 & 0 & -10.3 & 0.1 & 0.5 & -10.4 & 0.2 & 0.9 \\
+$\alpha $       & 0 & 0 & 0 & 0.0023 & 0.0005 & 0.0024 & 0.0025 & 0.0005 & 0.0023 \\
+$\theta (K) $   & 385 & 0 & 0 & 364 & 9 & 46 & 342 & 8 & 38 \\
+$S^2_{0}$& 1 & 0 & 0 & 1.05 & 0.02 & 0.12 & 1.14 & 0.03 & 0.15 \\
+\hline
+\end{tabular}
+ \caption{Results for Standard fitting. Date: \today. Author: Lucas Smale}
+%    \label{tab:}
+\end{table}
+\begin{table}[ht]
+\centering
+\begin{tabular}{c||c|c|c||c|c|c||c|c|c}
+\hline
+&\multicolumn{3}{|c}{Unwindowed $k^{0}$ fit}&\multicolumn{3}{|c}{Windowed (8 peaks) $k^{0}$ fit}&\multicolumn{3}{|c}{Windowed (7 peaks) $k^{0}$ fit}\\
+& value & $\sigma_{min}$ & $\sigma_{max}$& value & $\sigma_{min}$ & $\sigma_{max}$& value & $\sigma_{min}$ & $\sigma_{max}$\\
+\hline
+$\chi^2$   & 8.26e+05 & & & 6.74e+05 & & & 1.28e+04 & & \\
+$\chi^2_r$ & 2.24e+03 & & & 2.22e+03 & & & 5.18e+01 & & \\
+\hline
+$E_{0,corr} (eV)$& -7.941 & 0.007 & 0.308 & 1.368 & 0.008 & 0.376 & -10.36 & 0.04 & 0.26 \\
+$\alpha $       & -0.06486 & 0.00006 & 0.00284 & -0.04856 & 0.00006 & 0.00294 & 0.00307 & 0.00009 & 0.00065 \\
+$\theta (K) $   & 548 & 4 & 192 & 461 & 3 & 129 & 354 & 2 & 12 \\
+$S^2_{0}$& -0.3826 & 0.0010 & 0.0454 & -0.498 & 0.001 & 0.059 & 1.153 & 0.006 & 0.041 \\
+\hline
+\end{tabular}
+ \caption{Results for Improved fitting. Date: \today. Author: Lucas Smale}
+%    \label{tab:}
+\end{table}
+\end{landscape}
+\end{document}

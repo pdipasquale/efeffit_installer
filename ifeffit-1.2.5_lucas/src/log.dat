@@ -1,0 +1,4 @@
+ Feff 8.10
+ # read error: cannot find file
+ # >> file name = feff.inp
+ No absorbing atom (unique pot 0) was defined.

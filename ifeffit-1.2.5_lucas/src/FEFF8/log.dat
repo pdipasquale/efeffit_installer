@@ -1,0 +1,12 @@
+ Feff 8.10
+ Maximum orbital momentum for FMS
+   iph    lmax1    lmax2
+      0      2      2
+      1      2      2
+ name:     copper
+ formula:  Cu
+ sites:    Cu1
+ refer1:   Kittel, ISSP
+ refer2:
+ schoen:
+ notes1:   metal, fcc

@@ -1,0 +1,5 @@
+bin_dir="/usr/local/bin"
+lib_iff="-L/usr/local/lib -lifeffit "
+lib_plt="-L/usr/local/pgplot -lpgplot -lpng -lz -lX11"
+lib_f77="-L/usr/lib/gcc/x86_64-linux-gnu/3.4.6 -L/usr/lib/gcc/x86_64-linux-gnu/3.4.6/../../../../lib -L/lib/../lib -L/usr/lib/../lib -lfrtbegin -lg2c -lm -lgcc_s "
+inc_iff="-I../../src/lib -I/usr/local/share/ifeffit/config"
