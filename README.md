@@ -1,4 +1,4 @@
-# ifeffit_lucs
+# ifeffit_lucas
 
 # Need to install a VM with a particular Ubuntu version
 
