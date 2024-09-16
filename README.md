@@ -40,9 +40,9 @@ sudo ln -s /usr/include/zconf.h /usr/local/pgplot
 #note that for you zconf might be in: sudo ln /usr/include/x86_64-linux-gnu/zconf.h             Check to make sure
 # should throw an error that crt1.o, crti.o and crtn.o are missing, also that libgcc_s.so is missing
 #run the following commands and it should resolve those errors:
-sudo ln -s /usr/lib/x86_64-linux-gnu/ctri.o /usr/lib/
-sudo ln -s /usr/lib/x86_64-linux-gnu/ctr1.o /usr/lib/ 
-sudo ln -s /usr/lib/x86_64-linux-gnu/ctrn.o /usr/lib/
+sudo ln -s /usr/lib/x86_64-linux-gnu/crti.o /usr/lib/
+sudo ln -s /usr/lib/x86_64-linux-gnu/crt1.o /usr/lib/ 
+sudo ln -s /usr/lib/x86_64-linux-gnu/crtn.o /usr/lib/
 sudo ln -s /usr/lib/gcc/x86_64-linux-gnu/4.8/libgcc_s.so /usr/lib/x86_64-linux-gnu/
 
 # Now after all that ./PGPLOT_install should work fine, and we can install ifeffit!
@@ -50,7 +50,7 @@ sudo ln -s /usr/lib/gcc/x86_64-linux-gnu/4.8/libgcc_s.so /usr/lib/x86_64-linux-g
 sudo ./configure
 sudo make
 # should throw an error about some missing files, we need to install:
-sudo apt-get install libtinfo_dev
+sudo apt-get install libtinfo-dev
 sudo ln -s /ur/lib/x86_64_linux-gnu/libtermcap.a /lib/termcap/
 # now try make again
 sudo make
