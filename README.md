@@ -67,5 +67,4 @@ ifeffit itself behaves like a scripting language, you'll find that you can write
     similar to python
 
 # ENJOY :)
-# given all the above information on errors, one might be able to just make an executable that runs ll of the above command
-# not me though, too lazy
+# Note that i plan on updating this repo with an installation executable, that resolves all of these weird errors, but it will only work on x86 processors.
