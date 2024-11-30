@@ -1,7 +1,7 @@
 # ifeffit_lucas
 
 # Need to install a VM with a particular Ubuntu version
-# For this we'll install 14.04, once the efeffit install is done you can upgrade your ubuntu freely.
+# For this we'll install 16.04, once the efeffit install is done you can upgrade your ubuntu freely.
 
 # First we need to install a g77 compiler, so we need to change our source lists up a bit:
 
