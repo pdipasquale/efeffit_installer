@@ -73,7 +73,7 @@ sudo make
 # should throw an error about some missing files, we need to install:
 sudo apt-get install libtinfo-dev
 
-sudo ln -s /ur/lib/x86_64_linux-gnu/libtermcap.a /lib/termcap/
+sudo ln -s /usr/lib/x86_64_linux-gnu/libtermcap.a /lib/termcap/
 
 # now try make again
 sudo make
