@@ -36,7 +36,7 @@ int main()
     }
 
     // move the ifeffit folder into the /usr/lib folder
-    const char *copyifeffitcommand = "sudo cp ifeffit-1.2.5_lucas /usr/lib";
+    const char *copyifeffitcommand = "sudo cp ifeffit-1.2.5_lucas /usr/lib/ -r";
     system(copyifeffitcommand);
 
     if (result == 0) {
