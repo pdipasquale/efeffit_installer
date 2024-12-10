@@ -44,13 +44,14 @@ sudo apt-get install libpng-dev
 sudo apt-get install libx11-dev
 
 # Now to resolve an error about a missing png.h rule, run the following:
-sudo ln -s /usr/include/png.h /usr/local/pgplot
+sudo mkdir /usr/local/pgplot
+sudo ln -s /usr/include/png.h /usr/local/pgplot/png.h
 
-sudo ln -s /usr/include/pngconf.h /usr/local/pgplot
+sudo ln -s /usr/include/pngconf.h /usr/local/pgplot/pngconf.h
 
-sudo ln -s /usr/include/zlib.h /usr/local/pgplot
+sudo ln -s /usr/include/zlib.h /usr/local/pgplot/zlib.h
 
-sudo ln -s /usr/include/zconf.h /usr/local/pgplot
+sudo ln -s /usr/include/zconf.h /usr/local/pgplot/zconf.h
 
 #note that for you zconf might be in: sudo ln /usr/include/x86_64-linux-gnu/zconf.h             Check to make sure
 # should throw an error that crt1.o, crti.o and crtn.o are missing, also that libgcc_s.so is missing
