@@ -1,3 +1,8 @@
+# I wrote an installer file for this
+If you want to use the installer file run the following command in a terminal:
+
+gcc installer/full_install.c -o install.o || sudo ./install.o
+
 # ifeffit_lucas
 
 # Need to install a VM with a particular Ubuntu version
