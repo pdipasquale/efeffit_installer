@@ -2,18 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 int main()
 {
     // giving system command and storing return value
     int returnCode = system("echo I am running");
     
     FILE *sourcesFile = fopen("/etc/apt/sources.list", "a");
-    // for testing use the file below
     // Need a means of intelligently avoiding directly overwriting the sources file 
     //in case this breaks and needs to be run from the start
-
     // I'm using the work intelligently very loosely here
     //FILE *sourcesFile = fopen(".\\test_files\\sources.list", "a");
+    // Basically if the installation fucks up we need to go into the sources file and delete this section
         fputs("#we are editing the file here#\n", sourcesFile);
         fputs("##################\n", sourcesFile);
         fputs("deb [trusted=yes] http://old-releases.ubuntu.com/ubuntu/ hardy universe\n", sourcesFile);
