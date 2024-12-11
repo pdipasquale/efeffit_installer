@@ -25,6 +25,7 @@ int main()
     fclose(sourcesFile);
 
     // installing the g77 compiler
+    system("sudo apt update")
     const char *g77install = "sudo apt install -y g77";
     printf("installing g77 compiler");
     int result = system(g77install);
