@@ -100,4 +100,6 @@ ifeffit itself behaves like a scripting language, you'll find that you can write
 # ENJOY :)
 # Note that i plan on updating this repo with an installation executable, that resolves all of these weird errors, but it will only work on x86 processors.
 
-# known issues: Installing from a shared folder has weird permission issues that stop the installation of the custom packages (feffit2)
+# known issues: 
+Installing from a shared folder has weird permission issues that stop the installation of the custom packages (feffit2)
+For now just install using this git repo and and avoid all the permission problems
