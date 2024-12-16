@@ -7,8 +7,10 @@ int main()
 {
     // giving system command and storing return value
     int returnCode = system("echo I am running");
-    
-    FILE *sourcesFile = fopen("/etc/apt/sources.list", "a");
+    FILE *deps_file = fopen("deps_check.txt");
+    char c[1000];
+    FILE *sourcesFile = fopen("/etc/apt/sources.list");
+    if c=="0" {
     // Need a means of intelligently avoiding directly overwriting the sources file 
     //in case this breaks and needs to be run from the start
     // I'm using the work intelligently very loosely here
@@ -23,17 +25,26 @@ int main()
         fputs("##################\n", sourcesFile);
 
     fclose(sourcesFile);
-
+    
+    
     // installing the g77 compiler
     system("sudo apt update");
     const char *g77install = "sudo apt install -y g77";
     printf("installing g77 compiler");
     int result = system(g77install);
-
+    }
+        
     if (result == 0) {
         printf("Dependencies installed successfully.\n");
+        fputs("1", deps_file)
+        fclose(deps_file)
     } else {
         printf("Failed to install dependencies. Error code: %d\n", result);
+        printf("Try a manual g77 installation:");
+        printf("sudo apt install g77")
+        fputs("0", deps_file)
+        fclose(deps_file)
+        exit()
     }
 
     // move the ifeffit folder into the /usr/lib folder
@@ -43,7 +54,7 @@ int main()
     if (result == 0) {
         printf("ifeffit directory copied to /usr/lib/.\n");
     } else {
-        printf("Failed to install dependencies. Error code: %d\n", result);
+        printf("Failed to copy ifeffit folder: %d\n", result);
     }
     // all of the installation files are located in /usr/lib/ifeffit-1.2.5_lucas
 
