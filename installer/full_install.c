@@ -5,7 +5,7 @@
 
 int main()
 {
-    // giving system command and storing return value
+    // giving system command and storing return value.....
     int returnCode = system("echo I am running");
     FILE *deps_file = fopen("deps_check.txt", "r");
     char c[1000];
