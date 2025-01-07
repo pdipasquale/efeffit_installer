@@ -7,15 +7,17 @@ int main()
 {
     // giving system command and storing return value
     int returnCode = system("echo I am running");
-    FILE *deps_file = fopen("deps_check.txt");
+    FILE *deps_file = fopen("deps_check.txt", "r");
     char c[1000];
-    FILE *sourcesFile = fopen("/etc/apt/sources.list");
-    if c=="0" {
+    fscanf(deps_file, "%[^\n]", c);
+    FILE *sourcesFile = fopen("/etc/apt/sources.list", "a+");
+    if (c=='0') {
     // Need a means of intelligently avoiding directly overwriting the sources file 
     //in case this breaks and needs to be run from the start
     // I'm using the work intelligently very loosely here
     //FILE *sourcesFile = fopen(".\\test_files\\sources.list", "a");
     // Basically if the installation fucks up we need to go into the sources file and delete this section
+        fclose(deps_file);
         fputs("#we are editing the file here#\n", sourcesFile);
         fputs("##################\n", sourcesFile);
         fputs("deb [trusted=yes] http://old-releases.ubuntu.com/ubuntu/ hardy universe\n", sourcesFile);
@@ -23,7 +25,9 @@ int main()
         fputs("deb [trusted=yes] http://old-releases.ubuntu.com/ubuntu/ hardy-updates universe\n", sourcesFile);
         fputs("deb-src [trusted=yes] http://old-releases.ubuntu.com/ubuntu/ hardy-updates universe\n", sourcesFile);
         fputs("##################\n", sourcesFile);
-
+        FILE *deps_file_new = fopen("deps_check.txt", "w+");
+        
+        
     fclose(sourcesFile);
     
     
