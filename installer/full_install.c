@@ -11,7 +11,7 @@ int main()
     char c[1000];
     fscanf(deps_file, "%[^\n]", c);
     FILE *sourcesFile = fopen("/etc/apt/sources.list", "a+");
-    int result = 5;
+    int result = 1;
     if (c=='0') {
     // Need a means of intelligently avoiding directly overwriting the sources file 
     //in case this breaks and needs to be run from the start
