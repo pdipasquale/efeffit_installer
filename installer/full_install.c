@@ -11,6 +11,7 @@ int main()
     char c[1000];
     fscanf(deps_file, "%[^\n]", c);
     FILE *sourcesFile = fopen("/etc/apt/sources.list", "a+");
+    int result = 5;
     if (c=='0') {
     // Need a means of intelligently avoiding directly overwriting the sources file 
     //in case this breaks and needs to be run from the start
@@ -40,15 +41,15 @@ int main()
         
     if (result == 0) {
         printf("Dependencies installed successfully.\n");
-        fputs("1", deps_file)
-        fclose(deps_file)
+        fputs("1", deps_file);
+        fclose(deps_file);
     } else {
         printf("Failed to install dependencies. Error code: %d\n", result);
         printf("Try a manual g77 installation:");
-        printf("sudo apt install g77")
-        fputs("0", deps_file)
-        fclose(deps_file)
-        exit()
+        printf("sudo apt install g77");
+        fputs("0", deps_file);
+        fclose(deps_file);
+        exit();
     }
 
     // move the ifeffit folder into the /usr/lib folder
