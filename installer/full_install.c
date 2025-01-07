@@ -49,7 +49,7 @@ int main()
         printf("sudo apt install g77");
         fputs("0", deps_file);
         fclose(deps_file);
-        exit();
+        exit(0);
     }
 
     // move the ifeffit folder into the /usr/lib folder
