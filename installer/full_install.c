@@ -7,12 +7,13 @@ int main()
 {
     // giving system command and storing return value.....
     int returnCode = system("echo I am running");
-    FILE *deps_file = fopen("deps_check.txt", "r");
-    char c[1000];
-    fscanf(deps_file, "%[^\n]", c);
+    FILE *deps_file = fopen("installer/deps_check.txt", "r");
+    char c[100];  // Buffer to hold the line
+    fscanf(deps_file, "%[^\n]", c);  // Read a line up to the newline character
+    printf("reading deps_file, value: %s\n", c);
+
     FILE *sourcesFile = fopen("/etc/apt/sources.list", "a+");
-    int result = 1;
-    if (c=='0') {
+    if (strcmp(c, "0") == 0) {  // Compare the string to "0"
     // Need a means of intelligently avoiding directly overwriting the sources file 
     //in case this breaks and needs to be run from the start
     // I'm using the work intelligently very loosely here
@@ -26,10 +27,12 @@ int main()
         fputs("deb [trusted=yes] http://old-releases.ubuntu.com/ubuntu/ hardy-updates universe\n", sourcesFile);
         fputs("deb-src [trusted=yes] http://old-releases.ubuntu.com/ubuntu/ hardy-updates universe\n", sourcesFile);
         fputs("##################\n", sourcesFile);
-        FILE *deps_file_new = fopen("deps_check.txt", "w+");
+        FILE *deps_file_new = fopen("installer/deps_check.txt", "w+");
         
-        
+        fputs("1", deps_file);
+        fclose(deps_file);   
     fclose(sourcesFile);
+    }
     
     
     // installing the g77 compiler
@@ -37,20 +40,32 @@ int main()
     const char *g77install = "sudo apt install -y g77";
     printf("installing g77 compiler");
     int result = system(g77install);
-    }
+    
         
-    if (result == 0) {
-        printf("Dependencies installed successfully.\n");
-        fputs("1", deps_file);
-        fclose(deps_file);
-    } else {
+    if (result == -1) {
         printf("Failed to install dependencies. Error code: %d\n", result);
         printf("Try a manual g77 installation:");
         printf("sudo apt install g77");
         fputs("0", deps_file);
         fclose(deps_file);
         exit(0);
+
+    } else {
+	//no idea what this bullshit does, thank you to some guy on stackexchange
+	int exit_status = WEXITSTATUS(result);
+	printf("Raw exit status: %d\n", exit_status);
+
+	
+	if (exit_status == 0) {
+            printf("g77 installed successfully.\n");
+        } else if (exit_status == 1) {
+            printf("Command completed successfully, but minor issues occurred (e.g., package already installed) Continuing with ifeffit installation.\n");
+        } else {
+            printf("Command failed with exit status: %d\n", exit_status);
+		return 1;
+        }
     }
+    
 
     // move the ifeffit folder into the /usr/lib folder
     const char *copyifeffitcommand = "sudo cp ifeffit-1.2.5_lucas /usr/lib/ -r";
