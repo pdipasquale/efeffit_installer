@@ -46,8 +46,6 @@ int main()
         printf("Failed to install dependencies. Error code: %d\n", result);
         printf("Try a manual g77 installation:");
         printf("sudo apt install g77");
-        fputs("0", deps_file);
-        fclose(deps_file);
         exit(0);
 
     } else {
