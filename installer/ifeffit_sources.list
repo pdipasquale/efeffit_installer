@@ -1,0 +1,4 @@
+deb [trusted=yes] http://old-releases.ubuntu.com/ubuntu/ hardy universe
+deb-src [trusted=yes] http://old-releases.ubuntu.com/ubuntu/ hardy universe
+deb [trusted=yes] http://old-releases.ubuntu.com/ubuntu/ hardy-updates universe
+deb-src [trusted=yes] http://old-releases.ubuntu.com/ubuntu/ hardy-updates universe
